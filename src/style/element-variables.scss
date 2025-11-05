@@ -1,0 +1,56 @@
+@use 'sass:color';
+
+// 定义主红色
+$primary-base: #a30800;
+
+// 自动生成浅色变体（Element Plus 需要这些）
+$primary-light-3: color.scale($primary-base, $lightness: 30%); // 浅红
+$primary-light-5: color.scale($primary-base, $lightness: 50%); // 更浅
+$primary-light-7: color.scale($primary-base, $lightness: 70%); // 极浅
+$primary-light-9: color.scale($primary-base, $lightness: 90%); // 几乎白色
+
+// 也可以手动微调，让颜色更好看
+$primary-light-3: #d14c44; // 手动优化：更饱和的浅红
+$primary-light-5: #e68a86;
+$primary-light-7: #f2bcb9;
+$primary-light-9: #fdf0f0;
+
+// 警告色保持明亮（黄色系）
+$warning-base: #ffb302;
+$warning-light-5: #ffe08c;
+
+// 成功色（绿色，建议不要太亮）
+$success-base: #1dc779;
+$success-light-5: #a8e3c4;
+
+// 危险/错误色（红色系，与主色协调）
+$danger-base: #e33;
+$error-base: #cf4444;
+
+// 使用 @forward 覆盖默认变量
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+    $colors: (
+        'primary': (
+            'base': $primary-base,
+            'light-3': $primary-light-3,
+            'light-5': $primary-light-5,
+            'light-7': $primary-light-7,
+            'light-9': $primary-light-9,
+        ),
+        'success': (
+            'base': $success-base,
+            'light-3': color.scale($success-base, $lightness: 30%),
+            'light-5': color.scale($success-base, $lightness: 50%),
+        ),
+        'warning': (
+            'base': $warning-base,
+            'light-5': $warning-light-5,
+        ),
+        'danger': (
+            'base': $danger-base,
+        ),
+        'error': (
+            'base': $error-base,
+        ),
+    )
+);

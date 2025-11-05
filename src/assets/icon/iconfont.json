@@ -1,0 +1,23 @@
+{
+  "id": "5049200",
+  "name": "ndes_web",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "20853339",
+      "name": "密码",
+      "font_class": "mima",
+      "unicode": "e6a6",
+      "unicode_decimal": 59046
+    },
+    {
+      "icon_id": "356196",
+      "name": "用户",
+      "font_class": "yonghu",
+      "unicode": "e658",
+      "unicode_decimal": 58968
+    }
+  ]
+}
