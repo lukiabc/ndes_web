@@ -62,7 +62,7 @@ export const getArticleListAPI = (page = 1, pageSize = 10) => {
     });
 };
 
-// 根据分类 ID 获取文章列表
+// 根据子分类 ID 获取文章列表
 export const getArticlesByCategoryAPI = (
     categoryId: number,
     page = 1,
@@ -75,6 +75,17 @@ export const getArticlesByCategoryAPI = (
     });
 };
 
+export const getArticlesByParentCategoryAPI = (
+    parentId: number,
+    page = 1,
+    pageSize = 10
+) => {
+    return httpInstance<PaginatedResponse<ArticleItem>>({
+        url: `/article/listByParent/${parentId}`,
+        method: 'GET',
+        params: { page, pageSize },
+    });
+};
 // 按状态查询文章
 export const getArticlesByStatus = (
     status: string,

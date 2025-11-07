@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getArticlesByCategoryAPI } from '@/api/article';
+import { getArticlesByParentCategoryAPI } from '@/api/article';
 import { type ArticleItem } from '@/api/article';
 
 const currentPage = ref(1);
@@ -36,11 +36,15 @@ const title = ref('');
 
 const getArticles = async () => {
     try {
-        const res = await getArticlesByCategoryAPI(2, currentPage.value, 10);
+        const res = await getArticlesByParentCategoryAPI(
+            2,
+            currentPage.value,
+            10
+        );
         articles.value = res.data.list
             .filter((item) => item.status === '已发布')
             .slice(0, 7);
-        title.value = articles.value[0].Category?.category_name || '';
+        title.value = articles.value[0].Category?.ParentCategory?.category_name || '';
     } catch (error) {
         console.error('获取文章失败:', error);
     }

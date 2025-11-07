@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getArticlesByCategoryAPI, type ArticleItem } from '@/api/article';
+import { getArticlesByParentCategoryAPI, type ArticleItem } from '@/api/article';
 import { getCategoryListAPI, type CategoryItem } from '@/api/category';
 
 // 扩展类型：让分类包含自己的文章
@@ -51,7 +51,7 @@ const getCategoryList = async () => {
         const categoriesWithArticles = await Promise.all(
             topCategories.map(async (c: CategoryItem) => {
                 try {
-                    const articleRes = await getArticlesByCategoryAPI(
+                    const articleRes = await getArticlesByParentCategoryAPI(
                         c.category_id
                     );
                     return {
