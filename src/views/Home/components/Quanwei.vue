@@ -37,8 +37,11 @@ const getArticles = async () => {
     try {
         const res = await getArticlesByCategoryAPI(2, currentPage.value, 10);
         articles.value = res.data.list
-            .filter((item) => item.status === '已发布' &&
-        item.Category?.category_name === '权威发布' )
+            .filter(
+                (item) =>
+                    item.status === '已发布' &&
+                    item.Category?.category_name === '权威发布'
+            )
             .slice(0, 7);
     } catch (error) {
         console.error('获取文章失败:', error);
@@ -86,6 +89,7 @@ const formatDateTime = (dateString: string): string => {
     color: #0056b3;
     font-weight: bold;
     border-bottom: 2px solid #0056b3;
+    margin-bottom: -2px;
 }
 
 .more {

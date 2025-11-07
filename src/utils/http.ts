@@ -33,7 +33,7 @@ httpInstance.interceptors.response.use(
         return response;
     },
     function (error) {
-    ElMessage.warning(error.response.data.message);
+        ElMessage.warning(error.response.data.message);
 
         // 401 状态码，清除用户信息
         if (error.response.status === 401) {

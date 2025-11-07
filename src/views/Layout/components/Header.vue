@@ -33,14 +33,14 @@
                             @mouseleave="hideDropdown"
                         >
                             <router-link
-                                :to="`/category/${item.category_id}`"
+                                :to="item.category_id===0?'/':'/category/'+item.category_id"
                                 class="nav-link"
                                 @click="handleCategoryClick(item)"
                             >
                                 {{ item.category_name }}
                             </router-link>
 
-                            <!-- 下拉菜单 -->
+                            <!-- 子菜单 -->
                             <ul
                                 v-if="item.children && item.children.length > 0"
                                 class="dropdown-menu"
@@ -56,7 +56,7 @@
                                     class="dropdown-item"
                                 >
                                     <router-link
-                                        :to="`/category/${child.category_id}`"
+                                        :to="`/category/sub/${child.category_id}`"
                                         class="dropdown-link"
                                     >
                                         {{ child.category_name }}

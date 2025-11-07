@@ -10,14 +10,11 @@
                 <el-breadcrumb-item>正文</el-breadcrumb-item>
             </el-breadcrumb>
 
-            <!-- 加载状态 -->
             <div v-if="loading" class="loading">
                 <el-skeleton style="width: 100%" animated :rows="6" />
             </div>
 
-            <!-- 文章内容 -->
             <div v-else-if="article" class="article-content">
-                <!-- 标题 -->
                 <h1 class="title">{{ article.title }}</h1>
 
                 <div class="meta-info">
@@ -38,13 +35,11 @@
 
                 <el-divider />
 
-                <!-- 返回按钮 -->
                 <el-button icon="Back" @click="$router.back()"
                     >返回列表</el-button
                 >
             </div>
 
-            <!-- 未找到文章 -->
             <div v-else class="not-found">
                 <el-empty description="未找到该文章" />
             </div>

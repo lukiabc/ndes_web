@@ -19,6 +19,7 @@ body {
         'Microsoft YaHei', FreeSans, Arimo, 'Droid Sans', 'wenquanyi micro hei',
         'Hiragino Sans GB', 'Hiragino Sans GB W3', Arial, sans-serif;
 }
+
 .main-container {
     background-color: #fff;
     border-radius: 8px;
@@ -35,4 +36,10 @@ body {
     gap: 10px;
     margin-bottom: 20px;
     width: 400px;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }

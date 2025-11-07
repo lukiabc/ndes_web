@@ -8,7 +8,14 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [
-        vue(),
+        vue({
+            template: {
+                compilerOptions: {
+                    // 启用开发模式特性
+                    isCustomElement: (tag) => false,
+                },
+            },
+        }),
         AutoImport({
             resolvers: [ElementPlusResolver()], // 按需加载 UI 框架组件
             imports: ['vue', 'vue-router', 'pinia', '@vueuse/core'], // 自动导入

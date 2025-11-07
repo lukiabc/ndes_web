@@ -213,33 +213,6 @@ const editForm = ref<{ category_name: string; parent_id: number | null }>({
 });
 const currentRow = ref<Category | null>(null); // 当前编辑的行
 
-// // 将分类扁平数组转换为树形结构
-// const buildTree = (list: any[]) => {
-//     const map = new Map();
-//     const roots: any[] = [];
-
-//     // 将所有分类以 id 为 key 存入 map
-//     list.forEach((item) => {
-//         map.set(item.category_id, { ...item, children: [] });
-//     });
-
-//     //遍历所有项，挂载到父节点下或作为根节点
-//     list.forEach((item) => {
-//         const node = map.get(item.category_id);
-
-//         // 根节点（parent_id 为 null 或不存在）
-//         if (item.parent_id === null || !map.has(item.parent_id)) {
-//             roots.push(node);
-//         } else {
-//             // 根节点
-//             const parent = map.get(item.parent_id);
-//             parent.children.push(node);
-//         }
-//     });
-
-//     return roots;
-// };
-
 // 获取所有分类
 const fetchCategories = async () => {
     loading.value = true;

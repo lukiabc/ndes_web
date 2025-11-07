@@ -2,7 +2,6 @@
 <template>
     <el-form-item :prop="prop">
         <div class="captcha-group">
-            <!-- 输入框 -->
             <el-input
                 v-model="inputCode"
                 :placeholder="placeholder"
@@ -73,7 +72,7 @@ const getRandomRotate = () =>
 // 随机字号
 const getRandomSize = () => [16, 17, 18, 19, 20][Math.floor(Math.random() * 5)];
 
-// 同步 v-model
+// 输入框值
 const handleInput = (val: string) => {
     emit('update:modelValue', val);
     emit('change', val);

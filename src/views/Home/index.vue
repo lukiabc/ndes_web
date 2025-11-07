@@ -1,22 +1,17 @@
 <template>
     <div class="page-container">
-        <Header />
         <div class="content-row">
             <Carousel class="carousel" />
             <Quanwei class="quanwei" />
         </div>
-        <main class="content">
-            <router-view />
-        </main>
-        <Footer />
+        <Category class="category" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import Carousel from '@/views/Home/components/Carousel.vue';
-import Footer from '@/views/Home/components/Footer.vue';
-import Header from '@/views/Home/components/Header.vue';
 import Quanwei from '@/views/Home/components/Quanwei.vue';
+import Category from '@/views/Home/components/Category.vue';
 </script>
 
 <style lang="scss" scoped>
@@ -25,7 +20,6 @@ import Quanwei from '@/views/Home/components/Quanwei.vue';
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    background-color: #f5f7fa;
 }
 
 .content-row {

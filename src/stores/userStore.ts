@@ -10,7 +10,6 @@ export const useUserStore = defineStore(
             result: {
                 user_id: '',
                 username: '',
-                password: '',
                 email: '',
                 role_id: '',
                 avatar_url: '',
@@ -37,7 +36,6 @@ export const useUserStore = defineStore(
                 result: {
                     user_id: '',
                     username: '',
-                    password: '',
                     email: '',
                     role_id: '',
                     avatar_url: '',

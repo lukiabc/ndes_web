@@ -4,14 +4,33 @@ const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
-            path: '/',
-            name: 'Home',
-            component: () => import('@/views/Home/index.vue'),
-        },
-        {
             path: '/login',
             name: 'Login',
             component: () => import('@/views/Login/index.vue'),
+        },
+        {
+            path: '/',
+            name: 'layout',
+            component: () => import('@/views/Layout/layoutIndex.vue'),
+            children: [
+                {
+                    path: '',
+                    name: 'home',
+                    component: () => import('@/views/Home/index.vue'),
+                },
+                {
+                    path: 'category/:id',
+                    name: 'category',
+                    component: () =>
+                        import('@/views/Home/Category/categoryIndex.vue'),
+                },
+                {
+                    path: 'category/sub/:id',
+                    name: 'subCategory',
+                    component: () =>
+                        import('@/views/Home/Category/subCategoryIndex.vue'),
+                },
+            ],
         },
         {
             path: '/admin',
