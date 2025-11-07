@@ -30,6 +30,12 @@ const router = createRouter({
                     component: () =>
                         import('@/views/Home/Category/subCategoryIndex.vue'),
                 },
+                {
+                    path: 'article/:id',
+                    name: 'articleDetailFront',
+                    component: () =>
+                        import('@/views/Article/articleDetail.vue'),
+                },
             ],
         },
         {
@@ -67,8 +73,8 @@ const router = createRouter({
         },
         {
             path: '/articleDetail/:id',
-            name: 'articleDetail',
-            component: () => import('@/views/Admin/articleDetail.vue'),
+            name: 'articleDetailAdmin',
+            component: () => import('@/views/Article/articleDetail.vue'),
         },
     ],
 });

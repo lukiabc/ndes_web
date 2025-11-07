@@ -3,10 +3,25 @@
         <div class="detail-container">
             <!-- 面包屑导航 -->
             <el-breadcrumb separator="/" class="breadcrumb">
-                <el-breadcrumb-item :to="{ path: '/articleList' }"
-                    >{{ parentCategoryName }}
+                <!-- 前台时显示“首页” -->
+                <el-breadcrumb-item v-if="!isBackend" :to="{ path: '/' }">
+                    首页
                 </el-breadcrumb-item>
-                <el-breadcrumb-item>{{ childCategoryName }}</el-breadcrumb-item>
+
+                <!-- 公共部分：父分类 / 子分类 / 正文 -->
+                <el-breadcrumb-item
+                    :to="{
+                        path: isBackend
+                            ? '/admin/articleList'
+                            : `/category/${article?.Category?.category_id || ''
+                            }`,
+                    }"
+                >
+                    {{ parentCategoryName }}
+                </el-breadcrumb-item>
+                <el-breadcrumb-item>
+                    {{ childCategoryName }}
+                </el-breadcrumb-item>
                 <el-breadcrumb-item>正文</el-breadcrumb-item>
             </el-breadcrumb>
 
@@ -34,10 +49,6 @@
                 <div class="content-body" v-html="renderedContent" />
 
                 <el-divider />
-
-                <el-button icon="Back" @click="$router.back()"
-                    >返回列表</el-button
-                >
             </div>
 
             <div v-else class="not-found">
@@ -56,6 +67,11 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const article = ref<ArticleItem | null>(null);
 const loading = ref(false);
+
+// 判断是否为后台页面
+const isBackend = computed(() => {
+    return route.name === 'articleDetailAdmin';
+});
 
 // 获取文章 ID
 const articleId = Number(route.params.id);
