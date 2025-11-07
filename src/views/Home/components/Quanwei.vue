@@ -1,7 +1,7 @@
 <template>
     <div class="authority-publish">
         <div class="nav-tabs">
-            <span class="tab active">权威发布</span>
+            <span class="tab active">{{ title }}</span>
             <router-link to="/" class="more">更多 >></router-link>
         </div>
 
@@ -32,17 +32,15 @@ import { type ArticleItem } from '@/api/article';
 
 const currentPage = ref(1);
 const articles = ref<ArticleItem[]>([]);
+const title = ref('');
 
 const getArticles = async () => {
     try {
         const res = await getArticlesByCategoryAPI(2, currentPage.value, 10);
         articles.value = res.data.list
-            .filter(
-                (item) =>
-                    item.status === '已发布' &&
-                    item.Category?.category_name === '权威发布'
-            )
+            .filter((item) => item.status === '已发布')
             .slice(0, 7);
+        title.value = articles.value[0].Category?.category_name || '';
     } catch (error) {
         console.error('获取文章失败:', error);
     }

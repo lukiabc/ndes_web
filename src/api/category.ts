@@ -5,6 +5,14 @@ interface Category {
     parent_id: number | null;
 }
 
+export interface CategoryItem {
+    category_id: number;
+    parent_id: number | null;
+    category_name: string;
+    sort_order: number;
+    children?: Category[];
+}
+
 // 模糊查询分类
 export const searchCategoriesAPI = (
     category_name: string,

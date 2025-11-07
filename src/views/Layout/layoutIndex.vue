@@ -1,9 +1,9 @@
 <template>
     <div class="page-container">
         <Header />
-        <main class="content">
+        <div class="content">
             <router-view />
-        </main>
+        </div>
         <Footer />
     </div>
 </template>
@@ -24,7 +24,6 @@ import Footer from '@/views/Layout/components/Footer.vue';
 
 .content {
     flex: 1;
-    min-height: 900px;
     width: 1000px;
     margin: 0 auto;
     box-sizing: border-box;

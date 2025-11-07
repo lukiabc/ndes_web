@@ -85,6 +85,7 @@
 
 <style lang="scss" scoped>
 .footer-content {
+    margin: 40px 0;
     width: 100%;
     color: #fff;
     line-height: 30px;

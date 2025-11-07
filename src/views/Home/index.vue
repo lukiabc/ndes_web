@@ -1,5 +1,5 @@
 <template>
-    <div class="page-container">
+    <div class="home-container">
         <div class="content-row">
             <Carousel class="carousel" />
             <Quanwei class="quanwei" />
@@ -15,11 +15,9 @@ import Category from '@/views/Home/components/Category.vue';
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-    height: 100vh;
+.home-container {
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
 }
 
 .content-row {

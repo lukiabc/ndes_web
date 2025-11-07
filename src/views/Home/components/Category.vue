@@ -1,8 +1,8 @@
 <template>
     <div class="container">
-        <div class="content">
+        <div class="content" v-for="c in categoryList">
             <div class="title-box">
-                <span class="title">军事</span>
+                <span class="title">{{ c.category_name }}</span>
             </div>
             <div class="image-box">
                 <img src="@/assets/images/login.png" alt="军事" />
@@ -16,7 +16,24 @@
     </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { getArticlesByCategoryAPI, type ArticleItem } from '@/api/article';
+import { getCategoryListAPI, type CategoryItem } from '@/api/category';
+
+const categoryList = ref<CategoryItem[]>([]);
+
+const getCategoryList = async () => {
+    const res = await getCategoryListAPI();
+    categoryList.value = res.data
+        .filter((item: any) => item.parent_id === null)
+        .slice(1);
+    console.log(categoryList.value, '父分类');
+};
+
+onMounted(() => {
+    getCategoryList();
+});
+</script>
 
 <style lang="scss" scoped>
 .container {
@@ -36,7 +53,7 @@
 }
 
 .title {
-    padding: 8px 12px;
+    padding: 5px 12px;
     font-size: 16px;
     color: #0056b3;
     font-weight: bold;
