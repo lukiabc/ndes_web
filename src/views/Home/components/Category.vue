@@ -3,14 +3,27 @@
         <div class="content" v-for="c in categoryList">
             <div class="title-box">
                 <span class="title">{{ c.category_name }}</span>
+                <router-link to="/" class="more">更多 >></router-link>
             </div>
             <div class="image-box">
-                <img src="@/assets/images/login.png" alt="军事" />
+                <img
+                    v-if="c.articles && c.articles[0]?.Media?.[0]"
+                    :src="c.articles[0].Media[0].media_url"
+                    :alt="c.articles[0].title"
+                />
+                <img v-else src="@/assets/images/login.png" alt="默认图" />
             </div>
-            <span class="image-title ellipsis">张游侠权威部长</span>
+            <span class="image-title ellipsis">{{
+                c.articles[0]?.title || '默认标题'
+            }}</span>
             <div class="list-box">
-                <span class="title-list ellipsis">董军与塞尔维亚</span>
-                <span class="title-list ellipsis">第 12 届东盟防长扩大会</span>
+                <span
+                    v-for="article in (c.articles || []).slice(1, 4)"
+                    :key="article.article_id"
+                    class="title-list ellipsis"
+                >
+                    {{ article.title }}
+                </span>
             </div>
         </div>
     </div>
@@ -20,14 +33,42 @@
 import { getArticlesByCategoryAPI, type ArticleItem } from '@/api/article';
 import { getCategoryListAPI, type CategoryItem } from '@/api/category';
 
-const categoryList = ref<CategoryItem[]>([]);
+// 扩展类型：让分类包含自己的文章
+interface CategoryWithArticles extends CategoryItem {
+    articles: ArticleItem[];
+}
+const categoryList = ref<CategoryWithArticles[]>([]);
 
+// 分类列表
 const getCategoryList = async () => {
-    const res = await getCategoryListAPI();
-    categoryList.value = res.data
-        .filter((item: any) => item.parent_id === null)
-        .slice(1);
-    console.log(categoryList.value, '父分类');
+    try {
+        const res = await getCategoryListAPI();
+        const topCategories = res.data
+            .filter((item: any) => item.parent_id === null)
+            .slice(1);
+
+        // 使用 Promise.all 并行加载每个分类的文章
+        const categoriesWithArticles = await Promise.all(
+            topCategories.map(async (c: CategoryItem) => {
+                try {
+                    const articleRes = await getArticlesByCategoryAPI(
+                        c.category_id
+                    );
+                    return {
+                        ...c,
+                        articles: articleRes.data.list || [],
+                    };
+                } catch (err) {
+                    console.warn(`加载分类 ${c.category_name} 的文章失败`, err);
+                    return { ...c, articles: [] };
+                }
+            })
+        );
+
+        categoryList.value = categoriesWithArticles;
+    } catch (err) {
+        console.error('获取分类列表失败', err);
+    }
 };
 
 onMounted(() => {
@@ -45,8 +86,15 @@ onMounted(() => {
     font-size: 14px;
 }
 
+.more {
+    color: #0056b3;
+    text-decoration: none;
+    font-size: 14px;
+}
+
 .title-box {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     border-bottom: 2px solid #e0e0e0;
