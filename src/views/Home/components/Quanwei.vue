@@ -6,11 +6,11 @@
         </div>
 
         <div class="article-list">
-            <div
+            <router-link
                 v-for="item in articles"
                 :key="item.article_id"
+                :to="`/article/${item.article_id}`"
                 class="article-item"
-                @click="goToDetail(item.article_id)"
             >
                 <div class="title">{{ item.title }}</div>
                 <div class="date">
@@ -20,7 +20,7 @@
                             : '未知'
                     }}
                 </div>
-            </div>
+            </router-link>
         </div>
     </div>
 </template>
@@ -44,7 +44,8 @@ const getArticles = async () => {
         articles.value = res.data.list
             .filter((item) => item.status === '已发布')
             .slice(0, 7);
-        title.value = articles.value[0].Category?.ParentCategory?.category_name || '';
+        title.value =
+            articles.value[0].Category?.ParentCategory?.category_name || '';
     } catch (error) {
         console.error('获取文章失败:', error);
     }
@@ -53,10 +54,6 @@ const getArticles = async () => {
 onMounted(() => {
     getArticles();
 });
-
-const goToDetail = (id: number) => {
-    window.location.href = `/article/${id}`;
-};
 
 const formatDateTime = (dateString: string): string => {
     const date = new Date(dateString);
@@ -67,8 +64,8 @@ const formatDateTime = (dateString: string): string => {
 <style scoped>
 .authority-publish {
     font-family: 'Microsoft YaHei', sans-serif;
-    padding: 20px;
     background-color: #fff;
+    height: 400px;
 }
 
 .nav-tabs {
@@ -114,6 +111,7 @@ const formatDateTime = (dateString: string): string => {
     border-bottom: 1px dashed #e0e0e0;
     cursor: pointer;
     transition: background-color 0.2s;
+    text-decoration: none;
 }
 
 .article-item:hover {

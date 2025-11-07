@@ -1,9 +1,8 @@
 <template>
-    <div class="container">
+    <div class="article-detail-container">
         <div class="detail-container">
             <!-- 面包屑导航 -->
             <el-breadcrumb separator="/" class="breadcrumb">
-                <!-- 前台时显示“首页” -->
                 <el-breadcrumb-item v-if="!isBackend" :to="{ path: '/' }">
                     首页
                 </el-breadcrumb-item>
@@ -13,13 +12,22 @@
                     :to="{
                         path: isBackend
                             ? '/admin/articleList'
-                            : `/category/${article?.Category?.category_id || ''
-                            }`,
+                            : `/category/${
+                                  article?.Category?.category_id || ''
+                              }`,
                     }"
                 >
                     {{ parentCategoryName }}
                 </el-breadcrumb-item>
-                <el-breadcrumb-item>
+                <el-breadcrumb-item
+                    :to="{
+                        path: isBackend
+                            ? '/admin/articleList'
+                            : `/category/sub/${
+                                  article?.Category?.category_id || ''
+                              }`,
+                    }"
+                >
                     {{ childCategoryName }}
                 </el-breadcrumb-item>
                 <el-breadcrumb-item>正文</el-breadcrumb-item>
@@ -139,11 +147,10 @@ const renderedContent = computed(() => {
 </script>
 
 <style>
-.container {
+.article-detail-container {
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
     padding: 20px;
-    overflow: auto;
 }
 
 .detail-container {

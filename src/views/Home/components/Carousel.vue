@@ -8,7 +8,13 @@
                 @mouseenter="showTitle(item.carousel_id)"
                 @mouseleave="hideTitle(item.carousel_id)"
             >
-                <img :src="item.cover_image" alt="" class="carousel-image" />
+                <router-link :to="`/article/${item.article_id}`">
+                    <img
+                        :src="item.cover_image"
+                        alt=""
+                        class="carousel-image"
+                    />
+                </router-link>
                 <div
                     class="carousel-title"
                     v-show="hoveredId === item.carousel_id"

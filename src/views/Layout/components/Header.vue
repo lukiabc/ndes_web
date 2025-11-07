@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="header">
-            <div class="container">
+            <div class="header-container">
                 <img
                     src="@/assets/images/image.jpg"
                     alt="中国国防教育网"
@@ -275,7 +275,7 @@ onUnmounted(() => {
     font-family: Arial, sans-serif;
 }
 
-.container {
+.header-container {
     position: relative;
     width: 100%;
     height: 150px;
@@ -339,7 +339,6 @@ onUnmounted(() => {
     width: 1000px;
     margin: 0 auto;
     color: white;
-    overflow: visible;
 }
 
 .nav-menu {
@@ -379,7 +378,7 @@ onUnmounted(() => {
 }
 
 .nav-item.active {
-    background-color: $primary-light-7;
+    background-color: $primary-light-3;
 }
 
 .dropdown-menu {
@@ -427,7 +426,7 @@ onUnmounted(() => {
 }
 
 .dropdown-link:hover {
-    color: #e6f7ff;
-    text-decoration: underline;
+    color: $primary-base;
+    text-decoration: none;
 }
 </style>

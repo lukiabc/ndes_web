@@ -6,23 +6,30 @@
                 <router-link to="/" class="more">更多 >></router-link>
             </div>
             <div class="image-box">
-                <img
-                    v-if="c.articles && c.articles[0]?.Media?.[0]"
-                    :src="c.articles[0].Media[0].media_url"
-                    :alt="c.articles[0].title"
-                />
-                <img v-else src="@/assets/images/login.png" alt="默认图" />
+                <router-link :to="`/article/${c.articles[0].article_id}`">
+                    <img
+                        v-if="c.articles && c.articles[0]?.Media?.[0]"
+                        :src="c.articles[0].Media[0].media_url"
+                        :alt="c.articles[0].title"
+                    />
+                    <img v-else src="@/assets/images/login.png" alt="默认图" />
+                </router-link>
             </div>
-            <span class="image-title ellipsis">{{
-                c.articles[0]?.title || '默认标题'
-            }}</span>
+            <router-link :to="`/article/${c.articles[0].article_id}`">
+                <span class="image-title ellipsis">{{
+                    c.articles[0]?.title || '默认标题'
+                }}</span>
+            </router-link>
+
             <div class="list-box">
                 <span
                     v-for="article in (c.articles || []).slice(1, 4)"
                     :key="article.article_id"
                     class="title-list ellipsis"
                 >
-                    {{ article.title }}
+                    <router-link :to="`/article/${article.article_id}`">
+                        {{ article.title }}
+                    </router-link>
                 </span>
             </div>
         </div>
@@ -30,7 +37,10 @@
 </template>
 
 <script lang="ts" setup>
-import { getArticlesByParentCategoryAPI, type ArticleItem } from '@/api/article';
+import {
+    getArticlesByParentCategoryAPI,
+    type ArticleItem,
+} from '@/api/article';
 import { getCategoryListAPI, type CategoryItem } from '@/api/category';
 
 // 扩展类型：让分类包含自己的文章
@@ -126,5 +136,15 @@ onMounted(() => {
     span {
         margin-top: 5px;
     }
+}
+
+:deep(a) {
+    color: inherit;
+    text-decoration: none;
+}
+
+:deep(a:hover) {
+    color: #0056b3;
+    text-decoration: none;
 }
 </style>
