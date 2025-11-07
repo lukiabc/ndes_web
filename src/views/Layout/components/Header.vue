@@ -33,7 +33,11 @@
                             @mouseleave="hideDropdown"
                         >
                             <router-link
-                                :to="item.category_id===0?'/':'/category/'+item.category_id"
+                                :to="
+                                    item.category_id === 0
+                                        ? '/'
+                                        : '/category/' + item.category_id
+                                "
                                 class="nav-link"
                                 @click="handleCategoryClick(item)"
                             >
@@ -61,6 +65,87 @@
                                     >
                                         {{ child.category_name }}
                                     </router-link>
+                                </li>
+                            </ul>
+                        </li>
+                        <li
+                            id="xmedia"
+                            class="nav-item"
+                            :class="{ active: isActive(-1) }"
+                            @mouseenter="showDropdown(-1)"
+                            @mouseleave="hideDropdown"
+                        >
+                            <a href="javascript:;" class="nav-link">军队媒体</a>
+                            <ul
+                                class="dropdown-menu"
+                                :class="{ show: isDropdownVisible(-1) }"
+                                @mouseenter.stop="keepOpen(-1)"
+                                @mouseleave="hideDropdown"
+                            >
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://www.81.cn"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >中国军网</a
+                                    >
+                                </li>
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://81rc.81.cn"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >军队人才网</a
+                                    >
+                                </li>
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://www.81.cn/szb_223187/szblb/index.html?paperNumber=01&amp;paperName=jfjb&amp;paperDate=2025-11-07"
+                                        id="jfjbMenu"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >解放军报</a
+                                    >
+                                </li>
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://www.81.cn/szb_223187/gfbszblb/index.html?paperNumber=01&amp;paperName=zggfb&amp;paperDate=2025-11-07"
+                                        id="gfbMenu"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >中国国防报</a
+                                    >
+                                </li>
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://www.81.cn/rmjz_203219/zgmb/index.html"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >中国民兵</a
+                                    >
+                                </li>
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://www.plapic.com.cn"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >解放军画报</a
+                                    >
+                                </li>
+                                <li class="dropdown-item">
+                                    <a
+                                        href="http://www.81.cn/rmjz_203219/gfjy_203685/index.html"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="dropdown-link"
+                                        >国防教育</a
+                                    >
                                 </li>
                             </ul>
                         </li>
