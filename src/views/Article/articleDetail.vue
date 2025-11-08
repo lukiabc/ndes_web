@@ -7,25 +7,20 @@
                     首页
                 </el-breadcrumb-item>
 
-                <!-- 公共部分：父分类 / 子分类 / 正文 -->
                 <el-breadcrumb-item
                     :to="{
-                        path: isBackend
-                            ? '/admin/articleList'
-                            : `/category/${
-                                  article?.Category?.category_id || ''
-                              }`,
+                        name: isBackend ? 'articleList' : 'category',
+                        params: {
+                            id: article?.Category?.ParentCategory?.category_id,
+                        },
                     }"
                 >
                     {{ parentCategoryName }}
                 </el-breadcrumb-item>
                 <el-breadcrumb-item
                     :to="{
-                        path: isBackend
-                            ? '/admin/articleList'
-                            : `/category/sub/${
-                                  article?.Category?.category_id || ''
-                              }`,
+                        name: isBackend ? 'articleList' : 'subCategory',
+                        params: { id: article?.Category?.category_id },
                     }"
                 >
                     {{ childCategoryName }}

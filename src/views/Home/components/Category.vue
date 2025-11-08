@@ -64,9 +64,15 @@ const getCategoryList = async () => {
                     const articleRes = await getArticlesByParentCategoryAPI(
                         c.category_id
                     );
+                    const publishedArticles = (
+                        articleRes.data.list || []
+                    ).filter(
+                        (article: ArticleItem) => article.status === '已发布'
+                    );
+
                     return {
                         ...c,
-                        articles: articleRes.data.list || [],
+                        articles: publishedArticles,
                     };
                 } catch (err) {
                     console.warn(`加载分类 ${c.category_name} 的文章失败`, err);

@@ -9,7 +9,13 @@
                 @mouseleave="hideTitle(item.id)"
             >
                 <router-link :to="`/article/${item.id}`">
-                    <img :src="item.image" alt="" class="carousel-image" />
+                    <img
+                        v-if="item.image"
+                        :src="item.image"
+                        alt=""
+                        class="carousel-image"
+                    />
+                    <img v-else src="@/assets/images/login.png" alt="默认图" />
                 </router-link>
                 <div class="carousel-title" v-show="hoveredId === item.id">
                     {{ item.title }}

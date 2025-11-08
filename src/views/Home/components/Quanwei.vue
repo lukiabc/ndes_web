@@ -29,6 +29,9 @@
 import { ref, onMounted } from 'vue';
 import { getArticlesByParentCategoryAPI } from '@/api/article';
 import { type ArticleItem } from '@/api/article';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const currentPage = ref(1);
 const articles = ref<ArticleItem[]>([]);
@@ -51,14 +54,20 @@ const getArticles = async () => {
     }
 };
 
-onMounted(() => {
-    getArticles();
-});
-
 const formatDateTime = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN');
 };
+
+watch(
+    () => route.path,
+    (newPath) => {
+        if (newPath === '/') {
+            getArticles();
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <style scoped>
