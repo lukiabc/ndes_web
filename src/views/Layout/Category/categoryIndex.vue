@@ -2,12 +2,14 @@
     <div class="home-container">
         <div class="content-row">
             <Carousel class="carousel" :list="ArticleCarouselList" />
+            <Recommend class="recommend" />
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import Carousel from '@/components/Carousel.vue';
+import Recommend from '@/views/Layout/components/Recommend.vue';
 import { useRoute } from 'vue-router';
 import {
     getArticlesByParentCategoryAPI,
@@ -64,5 +66,13 @@ watch(
     flex: 2;
     max-width: calc(1000px * (2 / 3));
     box-sizing: border-box;
+}
+.recommend {
+    margin: 20px 0;
+    padding-left: 20px;
+    flex: 1;
+    max-width: calc(1000px * (1 / 3));
+    box-sizing: border-box;
+    border-left: 1px solid #e0e0e0;
 }
 </style>
