@@ -3,22 +3,15 @@
     <div class="home-carousel">
         <el-carousel height="400px" indicator-position="none">
             <el-carousel-item
-                v-for="item in carouselList"
-                :key="item.carousel_id"
-                @mouseenter="showTitle(item.carousel_id)"
-                @mouseleave="hideTitle(item.carousel_id)"
+                v-for="item in list"
+                :key="item.id"
+                @mouseenter="showTitle(item.id)"
+                @mouseleave="hideTitle(item.id)"
             >
-                <router-link :to="`/article/${item.article_id}`">
-                    <img
-                        :src="item.cover_image"
-                        alt=""
-                        class="carousel-image"
-                    />
+                <router-link :to="`/article/${item.id}`">
+                    <img :src="item.image" alt="" class="carousel-image" />
                 </router-link>
-                <div
-                    class="carousel-title"
-                    v-show="hoveredId === item.carousel_id"
-                >
+                <div class="carousel-title" v-show="hoveredId === item.id">
                     {{ item.title }}
                 </div>
             </el-carousel-item>
@@ -27,17 +20,15 @@
 </template>
 
 <script lang="ts" setup>
-import { getActiveCarouselsAPI } from '@/api/carousels';
+const props = defineProps<{
+    list: {
+        id: number;
+        title: string;
+        image: string;
+    }[];
+}>();
 
 const hoveredId = ref(0);
-
-const carouselList: any = ref([]);
-const getCarousel = async () => {
-    const res = await getActiveCarouselsAPI();
-    console.log(res.data.list, '轮播图数据');
-
-    carouselList.value = res.data.list;
-};
 
 const showTitle = (id: number) => {
     hoveredId.value = id;
@@ -48,10 +39,6 @@ const hideTitle = (id: number) => {
         hoveredId.value = 0;
     }
 };
-
-onMounted(() => {
-    getCarousel();
-});
 </script>
 
 <style lang="scss" scoped>

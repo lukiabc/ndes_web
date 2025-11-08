@@ -1,7 +1,7 @@
 <template>
     <div class="home-container">
         <div class="content-row">
-            <Carousel class="carousel" />
+            <Carousel class="carousel" :list="carouselList" />
             <Quanwei class="quanwei" />
         </div>
         <Category class="category" />
@@ -9,9 +9,27 @@
 </template>
 
 <script lang="ts" setup>
-import Carousel from '@/views/Home/components/Carousel.vue';
+import Carousel from '@/components/Carousel.vue';
 import Quanwei from '@/views/Home/components/Quanwei.vue';
 import Category from '@/views/Home/components/Category.vue';
+import { getActiveCarouselsAPI } from '@/api/carousels';
+
+const carouselList: any = ref([]);
+const getCarousel = async () => {
+    const res = await getActiveCarouselsAPI();
+    console.log(res.data.list, '轮播图数据');
+    carouselList.value = res.data.list.map((item: any) => ({
+        id: item.article_id,
+        title: item.title,
+        image: item.cover_image,
+    }));
+};
+
+console.log(carouselList.value, '轮播图数据');
+
+onMounted(() => {
+    getCarousel();
+});
 </script>
 
 <style lang="scss" scoped>

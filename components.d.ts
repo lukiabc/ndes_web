@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ArticleDetails: typeof import('./src/components/ArticleDetails.vue')['default']
     Captcha: typeof import('./src/components/Captcha.vue')['default']
+    Carousel: typeof import('./src/components/Carousel.vue')['default']
     EChartsTree: typeof import('./src/components/EChartsTree.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
