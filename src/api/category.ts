@@ -35,6 +35,14 @@ export const getCategoryListAPI = () => {
     });
 };
 
+// 根据分类ID获取所有子分类
+export const getCategoryChildrenAPI = (category_id: number) => {
+    return httpInstance({
+        url: `/categories/children/${category_id}`,
+        method: 'GET',
+    });
+};
+
 // 创建分类
 export const createCategoryAPI = (data: Category) => {
     return httpInstance({

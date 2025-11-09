@@ -1,7 +1,10 @@
 <template>
     <div class="home-container">
         <div class="content-row">
-            <Carousel class="carousel" :list="ArticleCarouselList" />
+            <div class="content-left">
+                <Carousel class="carousel" :list="ArticleCarouselList" />
+                <SubCategory />
+            </div>
             <Recommend class="recommend" />
         </div>
     </div>
@@ -10,6 +13,7 @@
 <script lang="ts" setup>
 import Carousel from '@/components/Carousel.vue';
 import Recommend from '@/views/Layout/components/Recommend.vue';
+import SubCategory from '@/views/Layout/components/SubCategory.vue';
 import { useRoute } from 'vue-router';
 import {
     getArticlesByParentCategoryAPI,
@@ -21,10 +25,13 @@ const articleList: any = ref([]); // 文章列表
 const ArticleCarouselList: any = ref([]); // 文章轮播图列表
 
 // 从路由参数中获取 category_id
-const currentCategoryId = Number(route.params.id);
+const currentCategoryId = computed(() => {
+    const id = route.params.id;
+    return id ? (Array.isArray(id) ? Number(id[0]) : Number(id)) : NaN;
+});
 
 const getArticleCarouselList = async () => {
-    const res = await getArticlesByParentCategoryAPI(currentCategoryId);
+    const res = await getArticlesByParentCategoryAPI(currentCategoryId.value);
     articleList.value = res.data.list;
     ArticleCarouselList.value = res.data.list.map((item: ArticleItem) => ({
         id: item.article_id,

@@ -17,7 +17,7 @@
                     </div></router-link
                 >
                 <div class="recommend-desc">
-                    {{ extractFirstParagraph(item.content) }}
+                    {{ analysisContent(item.content) }}
                 </div>
             </div>
         </div>
@@ -26,6 +26,7 @@
 
 <script lang="ts" setup>
 import { useRoute } from 'vue-router';
+import { analysisContent } from '@/utils/analysisContent';
 import {
     getArticlesByParentCategoryAPI,
     type ArticleItem,
@@ -33,42 +34,33 @@ import {
 
 const route = useRoute();
 const recommendList = ref<ArticleItem[]>([]);
-const currentCategoryId = Number(route.params.id);
-
-// 提取 html 第一段内容
-const extractFirstParagraph = (htmlContent: string | null): string => {
-    if (!htmlContent) return '暂无描述';
-
-    // 创建一个临时 div 来解析 HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-
-    // 找到第一个 <p> 标签
-    const firstP = tempDiv.querySelector('p');
-    if (firstP) {
-        // 获取纯文本并去除首尾空白
-        let text = firstP.textContent?.trim() || '';
-        // 可选：截断到 80 个字符，避免太长
-        if (text.length > 80) {
-            text = text.substring(0, 80) + '...';
-        }
-        return text;
-    }
-
-    // 如果没有 <p>，尝试返回整个内容的纯文本（降级）
-    const allText = tempDiv.textContent?.trim() || '暂无描述';
-    return allText.length > 80 ? allText.substring(0, 80) + '...' : allText;
-};
+const currentCategoryId = computed(() => {
+    const id = route.params.id;
+    return id ? (Array.isArray(id) ? Number(id[0]) : Number(id)) : NaN;
+});
 
 // 推荐数据
 const getRecommendList = async () => {
-    const res = await getArticlesByParentCategoryAPI(currentCategoryId, 1, 10);
+    const res = await getArticlesByParentCategoryAPI(
+        currentCategoryId.value,
+        1,
+        10
+    );
     recommendList.value = res.data.list || [];
 };
 
 onMounted(() => {
     getRecommendList();
 });
+
+watch(
+    () => route.params.id,
+    (newId) => {
+        if (newId) {
+            getRecommendList();
+        }
+    }
+);
 </script>
 
 <style lang="scss" scoped>
