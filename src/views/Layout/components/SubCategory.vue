@@ -101,7 +101,7 @@ const getSubCategoryList = async () => {
     const res = await getCategoryChildrenAPI(parentCategoryId.value);
     let list = res.data.data || [];
 
-    // 如果是走 .second 分支（即 >=10），才需要加载每类的第一篇文章
+    // 如果是走 .second 分支（即 >=10） 才需要加载每类的第一篇文章
     if (list.length >= 10) {
         // 并发请求每个分类的第一篇已发布文章
         const articlePromises = list.map(async (category: any) => {

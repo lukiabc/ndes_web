@@ -27,6 +27,14 @@ export const searchCategoriesAPI = (
     });
 };
 
+// 根据子分类id获取父分类数据
+export const getParentCategoryAPI = (category_id: number) => {
+    return httpInstance({
+        url: `/categories/parent/${category_id}`,
+        method: 'GET',
+    });
+};
+
 // 获取分类列表
 export const getCategoryListAPI = () => {
     return httpInstance({
