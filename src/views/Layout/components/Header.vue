@@ -222,13 +222,69 @@ const handleCategoryClick = (item: Category) => {
     }
 };
 
-// 点击页面其他地方关闭激活状态
-const handleClickOutside = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    // 如果点击不在导航区域内部，则关闭所有状态
-    if (!target.closest('.nav-box')) {
-        selectedId.value = null;
-        hoveredId.value = null;
+// // 点击页面其他地方关闭激活状态
+// const handleClickOutside = (e: MouseEvent) => {
+//     const target = e.target as HTMLElement;
+//     // 如果点击不在导航区域内部，则关闭所有状态
+//     if (!target.closest('.nav-box')) {
+//         selectedId.value = null;
+//         hoveredId.value = null;
+//     }
+// };
+
+const updateSelectedIdFromRoute = () => {
+    const path = route.path;
+
+    // 首页
+    if (path === '/') {
+        selectedId.value = 0;
+        return;
+    }
+
+    // 一级分类页面
+    const categoryMatch = path.match(/^\/category\/(\d+)$/);
+    if (categoryMatch) {
+        const id = Number(categoryMatch[1]);
+        // 只有在 treeData 顶层存在的才视为有效父分类
+        if (treeData.value.some((item) => item.category_id === id)) {
+            selectedId.value = id;
+        } else {
+            selectedId.value = null;
+        }
+        return;
+    }
+
+    // 子分类页面
+    const subMatch = path.match(/^\/category\/sub\/(\d+)$/);
+    if (subMatch) {
+        const childId = Number(subMatch[1]);
+
+        // 递归查找该子分类的 parent_id
+        const findParentId = (nodes: Category[]): number | null => {
+            for (const node of nodes) {
+                if (node.children) {
+                    for (const child of node.children) {
+                        if (child.category_id === childId) {
+                            return node.category_id; // 找到父级 ID
+                        }
+                    }
+                    const found = findParentId(node.children);
+                    if (found !== null) return found;
+                }
+            }
+            return null;
+        };
+
+        const parentId = findParentId(treeData.value);
+        if (
+            parentId !== null &&
+            treeData.value.some((item) => item.category_id === parentId)
+        ) {
+            selectedId.value = parentId;
+        } else {
+            selectedId.value = null;
+        }
+        return;
     }
 };
 
@@ -258,13 +314,15 @@ onMounted(async () => {
         console.error('获取分类失败:', error);
     }
 
-    document.addEventListener('click', handleClickOutside);
+    updateSelectedIdFromRoute();
 });
 
-onUnmounted(() => {
-    // 移除事件监听
-    document.removeEventListener('click', handleClickOutside);
-});
+watch(
+    () => route.path,
+    () => {
+        updateSelectedIdFromRoute();
+    }
+);
 </script>
 
 <style lang="scss" scoped>
