@@ -41,7 +41,35 @@
                 </div>
             </div>
         </div>
-        <div class="second" v-else>第二部分</div>
+        <div class="second" v-else>
+            <div
+                v-for="item in subCategoryList"
+                :key="item.category_id"
+                class="card"
+            >
+                <div class="title-box">
+                    <router-link
+                        :to="`/category/${item.category_id}`"
+                        class="card-title"
+                    >
+                        {{ item.category_name }}
+                    </router-link>
+                </div>
+                <template v-if="item.firstArticle">
+                    <router-link
+                        :to="`/article/${item.firstArticle.article_id}`"
+                        class="first-title"
+                    >
+                        {{
+                            analysisContentByFirstSentence(
+                                item.firstArticle.content
+                            )
+                        }}
+                    </router-link>
+                </template>
+                <span v-else class="first-title no-article">暂无文章</span>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -49,7 +77,10 @@
 import { getCategoryChildrenAPI } from '@/api/category';
 import { getArticlesByCategoryAPI } from '@/api/article';
 import { Clock } from '@element-plus/icons-vue';
-import { analysisContent } from '@/utils/analysisContent';
+import {
+    analysisContent,
+    analysisContentByFirstSentence,
+} from '@/utils/analysisContent';
 import { useRoute } from 'vue-router';
 import { formatDateTime } from '@/utils/formatDateTime';
 
@@ -65,13 +96,43 @@ const parentCategoryId = computed(() => {
     return id ? (Array.isArray(id) ? Number(id[0]) : Number(id)) : NaN;
 });
 
-// 子分类列表
+// 子分类列表 + 每个分类的第一篇文章
 const getSubCategoryList = async () => {
     const res = await getCategoryChildrenAPI(parentCategoryId.value);
-    subCategoryList.value = res.data.data || [];
+    let list = res.data.data || [];
 
-    if (subCategoryList.value.length > 0) {
-        hoveredId.value = subCategoryList.value[0].category_id;
+    // 如果是走 .second 分支（即 >=10），才需要加载每类的第一篇文章
+    if (list.length >= 10) {
+        // 并发请求每个分类的第一篇已发布文章
+        const articlePromises = list.map(async (category: any) => {
+            try {
+                const articleRes = await getArticlesByCategoryAPI(
+                    category.category_id,
+                    1,
+                    1
+                );
+                const articles = articleRes.data.list || [];
+                const firstPublished = articles.find(
+                    (a: any) => a.status === '已发布'
+                );
+                return { ...category, firstArticle: firstPublished || null };
+            } catch (error) {
+                console.warn(
+                    `加载分类 ${category.category_name} 的首篇文章失败:`,
+                    error
+                );
+                return { ...category, firstArticle: null };
+            }
+        });
+
+        list = await Promise.all(articlePromises);
+    }
+
+    subCategoryList.value = list;
+
+    // 对于 .first 分支，仍需设置 hoveredId
+    if (list.length > 0 && list.length < 10) {
+        hoveredId.value = list[0].category_id;
     }
 };
 
@@ -96,7 +157,10 @@ watch(hoveredId, async (newId) => {
     if (newId && Number.isInteger(newId) && newId > 0) {
         try {
             const res = await getArticlesByCategoryAPI(newId, 1, 10);
-            articleList.value = res.data.list || [];
+            let list = res.data.list || [];
+
+            list = list.filter((item: any) => item.status === '已发布');
+            articleList.value = list;
         } catch (error) {
             console.error('加载文章失败:', error);
             articleList.value = [];
@@ -193,6 +257,65 @@ onUnmounted(() => {
 
         :deep(.el-icon) {
             transform: translateY(2px);
+        }
+    }
+}
+
+.second {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 0 5px;
+    width: 660px;
+    font-size: 14px;
+
+    .card {
+        background-color: #f9f9f9;
+        padding: 16px;
+        border-radius: 4px;
+        min-height: 100px;
+    }
+
+    .title-box {
+        border-bottom: 1px solid #dddcdc;
+        margin-bottom: 10px;
+        padding: 4px 0;
+        transition: all 0.3s ease;
+        transform-origin: center;
+
+        &:hover {
+            transform: scale(1.1);
+            border-bottom: 1px solid #a30800;
+        }
+    }
+
+    .card-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        color: #0056b3;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 8px;
+
+        &:hover {
+            color: #a30800;
+        }
+    }
+
+    .first-title {
+        color: #666;
+        font-size: 14px;
+        display: inline-block;
+        margin-bottom: 20px;
+
+        .no-article {
+            text-align: center;
+            color: #999;
+        }
+
+        &:hover {
+            color: #a30800;
         }
     }
 }

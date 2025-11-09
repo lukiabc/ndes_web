@@ -22,3 +22,24 @@ export const analysisContent = (htmlContent: string | null): string => {
     const allText = tempDiv.textContent?.trim() || '暂无描述';
     return allText.length > 80 ? allText.substring(0, 80) + '...' : allText;
 };
+
+// 解析第一句话
+export const analysisContentByFirstSentence = (
+    htmlContent: string | null
+): string => {
+    if (!htmlContent) return '暂无描述';
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+
+    let text = tempDiv.textContent?.trim() || '';
+    if (!text) return '暂无描述';
+
+    const dotIndex = text.search(/[。\.]/);
+    if (dotIndex !== -1) {
+        return text.substring(0, dotIndex + 1);
+    }
+
+    // 没有句号则截断到80字
+    return text.length > 80 ? text.substring(0, 80) + '...' : text;
+};
