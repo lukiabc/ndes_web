@@ -33,7 +33,21 @@
                     </span>
                 </li>
             </ul>
+
+            <el-pagination
+                class="pagination"
+                background
+                layout="total, prev, pager, next, sizes, jumper"
+                :total="total"
+                v-model:current-page="currentPage"
+                v-model:page-size="pageSize"
+                size="small"
+                :page-sizes="[10, 20, 30, 40, 50]"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+            />
         </div>
+
         <div class="right-content" v-else>
             <div class="no-content">暂无文章</div>
         </div>
@@ -41,42 +55,50 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { getCategoryChildrenAPI, getParentCategoryAPI } from '@/api/category';
 import { getArticlesByCategoryAPI } from '@/api/article';
-import { useRoute } from 'vue-router';
 
 const route = useRoute();
 
 const childCategories = ref<any[]>([]);
 const articleList = ref<any[]>([]);
 const parentId = ref<number>(0);
-const parentTitle = ref<string>('');
+const parentTitle = ref<string>('新闻动态'); // 默认标题
 
 const currentId = ref<number | null>(null);
+
+// 分页状态
+const total = ref<number>(0);
+const currentPage = ref<number>(1);
+const pageSize = ref<number>(10);
 
 // 格式化日期
 const formatDate = (dateStr: string): string => {
     return new Date(dateStr).toISOString().split('T')[0];
 };
 
-// 获取路由id
+// 解析路由 ID
 const parseRouteId = () => {
     const id = route.params.id;
     const numId = id ? (Array.isArray(id) ? Number(id[0]) : Number(id)) : NaN;
     return isNaN(numId) ? null : numId;
 };
 
-// 获取父分类 ID + 子分类列表
+// 加载分类（父类 + 子类）
 const loadCategoryStructure = async (id: number) => {
     try {
         const parentRes = await getParentCategoryAPI(id);
-        // 如果是顶级分类，data 可能为 null，此时 parentId 就是 id 本身
-        parentTitle.value = parentRes.data.data.category_name;
         if (parentRes.data?.data === null) {
+            // 说明当前 id 就是顶级分类
             parentId.value = id;
-            console.log(parentTitle.value);
+            // 无法从接口获取名称，可考虑通过子类反推，或设默认值
+            parentTitle.value = '新闻动态';
         } else {
-            parentId.value = parentRes.data?.data?.category_id || 0;
+            const parentData = parentRes.data.data;
+            parentId.value = parentData.category_id;
+            parentTitle.value = parentData.category_name;
         }
 
         const childrenRes = await getCategoryChildrenAPI(parentId.value);
@@ -87,33 +109,54 @@ const loadCategoryStructure = async (id: number) => {
     }
 };
 
-// 加载文章列表
-const loadArticles = async (categoryId: number) => {
+// 加载文章
+const loadArticles = async () => {
+    if (currentId.value === null) return;
+
     try {
-        const res = await getArticlesByCategoryAPI(categoryId, 1, 10);
-        let list = res.data?.list || [];
-        list = list.filter((item: any) => item.status === '已发布');
-        articleList.value = list;
+        const res = await getArticlesByCategoryAPI(
+            currentId.value,
+            currentPage.value,
+            pageSize.value
+        );
+        const data = res.data || {};
+        articleList.value = (data.list || []).filter(
+            (item: any) => item.status === '已发布'
+        );
+        total.value = data.total || 0;
     } catch (error) {
         console.error('加载文章失败:', error);
         articleList.value = [];
+        total.value = 0;
     }
 };
 
 // 点击左侧子分类
 const handleChildClick = (item: any) => {
     currentId.value = item.category_id;
-    loadArticles(item.category_id);
+    currentPage.value = 1; // 切换分类时重置到第一页
+    loadArticles();
 };
 
-// 根据路由加载数据
+// 分页事件处理
+const handleSizeChange = (val: number) => {
+    pageSize.value = val;
+    loadArticles();
+};
+
+const handleCurrentChange = (val: number) => {
+    currentPage.value = val;
+    loadArticles();
+};
+
+// 初始化
 const initialize = async () => {
     const id = parseRouteId();
     if (id === null) return;
 
     currentId.value = id;
     await loadCategoryStructure(id);
-    loadArticles(id);
+    loadArticles();
 };
 
 // 监听路由变化
@@ -246,6 +289,12 @@ watch(
         color: inherit;
         display: block;
         width: 100%;
+    }
+
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
     }
 }
 </style>

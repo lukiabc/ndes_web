@@ -13,7 +13,7 @@
                         class="nav-item"
                         :class="{ hovered: hoveredId === item.category_id }"
                         @mouseenter="onMouseEnter(item.category_id)"
-                        @mouseleave="onMouseLeave(item.category_id)"
+                        @mouseleave="onMouseLeave()"
                     >
                         {{ item.category_name }}
                     </router-link>
@@ -145,7 +145,7 @@ const onMouseEnter = (id: number) => {
 };
 
 // 鼠标离开
-const onMouseLeave = (id: number) => {
+const onMouseLeave = () => {
     if (hoverTimer) {
         clearTimeout(hoverTimer);
         hoverTimer = null;
