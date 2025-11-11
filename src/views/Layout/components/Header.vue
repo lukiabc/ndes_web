@@ -9,6 +9,7 @@
                 />
                 <div class="search-overlay">
                     <input
+                        v-model="searchQuery"
                         type="text"
                         placeholder="标题/内容关键词"
                         class="search-input"
@@ -160,7 +161,7 @@
 import { getCategoryListAPI } from '@/api/category';
 import { buildTree } from '@/utils/treeUtils';
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useCategoryStore } from '@/stores/categoryStore';
 
 const categoryStore = useCategoryStore();
@@ -174,12 +175,16 @@ interface Category {
 }
 
 // 响应式数据
-const hoveredId = ref<number | null>(null); // 控制 hover 显示下拉
+const hoveredId = ref<number | null>(null); // 控制 hover 显示下拉、
+
+// 搜索查询
+const searchQuery = ref<string>('');
 
 const categories = ref<Category[]>([]);
 const treeData = ref<Category[]>([]);
 
 const route = useRoute();
+const router = useRouter();
 
 // 是否激活（用于背景色）
 const isActive = (id: number): boolean => {
@@ -191,10 +196,19 @@ const isDropdownVisible = (id: number): boolean => {
     return hoveredId.value === id;
 };
 
-// 搜索处理
+// 全文搜索
 const handleSearch = () => {
-    console.log('执行搜索');
-    // 可跳转或调用 API
+    const keyword = searchQuery.value.trim();
+    console.log(keyword, '搜索关键词');
+    if (!keyword) {
+        ElMessage.error('请输入搜索关键词');
+        return;
+    }
+
+    router.push({
+        name: 'search',
+        query: { keyword },
+    });
 };
 
 // 鼠标进入
@@ -327,13 +341,11 @@ watch(
 .header-container {
     position: relative;
     width: 100%;
-    height: 150px;
 }
 
 .header-image {
     display: block;
     width: 100%;
-    height: 150px;
     object-fit: cover;
 }
 

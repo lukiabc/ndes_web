@@ -31,6 +31,12 @@ const router = createRouter({
                     component: () =>
                         import('@/views/Article/articleDetail.vue'),
                 },
+                {
+                    path: '/search',
+                    name: 'search',
+                    component: () =>
+                        import('@/views/Layout/components/SearchAll.vue'),
+                },
             ],
         },
         {
@@ -61,6 +67,7 @@ const router = createRouter({
                 },
             ],
         },
+
         {
             path: '/login',
             name: 'Login',

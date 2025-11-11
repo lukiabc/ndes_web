@@ -5,31 +5,43 @@
     >
         <div class="detail-container">
             <!-- 面包屑导航 -->
-            <el-breadcrumb separator="/" class="breadcrumb">
-                <el-breadcrumb-item v-if="!isBackend" :to="{ path: '/' }">
-                    首页
-                </el-breadcrumb-item>
+            <div class="breadcrumb-wrapper">
+                <el-breadcrumb separator="/" class="breadcrumb">
+                    <el-breadcrumb-item v-if="!isBackend" :to="{ path: '/' }">
+                        首页
+                    </el-breadcrumb-item>
 
-                <el-breadcrumb-item
-                    :to="{
-                        name: isBackend ? 'articleList' : 'category',
-                        params: {
-                            id: article?.Category?.ParentCategory?.category_id,
-                        },
-                    }"
+                    <el-breadcrumb-item
+                        :to="{
+                            name: isBackend ? 'articleList' : 'category',
+                            params: {
+                                id: article?.Category?.ParentCategory
+                                    ?.category_id,
+                            },
+                        }"
+                    >
+                        {{ parentCategoryName }}
+                    </el-breadcrumb-item>
+                    <el-breadcrumb-item
+                        :to="{
+                            name: isBackend ? 'articleList' : 'subCategory',
+                            params: { id: article?.Category?.category_id },
+                        }"
+                    >
+                        {{ childCategoryName }}
+                    </el-breadcrumb-item>
+                    <el-breadcrumb-item>正文</el-breadcrumb-item>
+                </el-breadcrumb>
+
+                <el-button
+                    type="primary"
+                    size="small"
+                    @click="$router.back()"
+                    class="back-button"
                 >
-                    {{ parentCategoryName }}
-                </el-breadcrumb-item>
-                <el-breadcrumb-item
-                    :to="{
-                        name: isBackend ? 'articleList' : 'subCategory',
-                        params: { id: article?.Category?.category_id },
-                    }"
-                >
-                    {{ childCategoryName }}
-                </el-breadcrumb-item>
-                <el-breadcrumb-item>正文</el-breadcrumb-item>
-            </el-breadcrumb>
+                    返回
+                </el-button>
+            </div>
 
             <div v-if="loading" class="loading">
                 <el-skeleton style="width: 100%" animated :rows="6" />
@@ -169,6 +181,13 @@ const renderedContent = computed(() => {
 .breadcrumb {
     font-size: 12px;
     color: #666;
+    margin-bottom: 20px;
+}
+
+.breadcrumb-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 

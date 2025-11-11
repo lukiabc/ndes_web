@@ -118,6 +118,13 @@ onMounted(() => {
     border-bottom: 2px solid #e0e0e0;
 }
 
+.image-title {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
 .title {
     padding: 5px 12px;
     font-size: 16px;
