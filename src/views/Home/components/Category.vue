@@ -97,7 +97,7 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
     font-size: 14px;
 }

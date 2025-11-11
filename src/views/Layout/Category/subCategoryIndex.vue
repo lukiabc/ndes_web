@@ -55,10 +55,10 @@
 </template>
 
 <script lang="ts" setup>
+import { getArticlesByCategoryAPI } from '@/api/article';
+import { getCategoryChildrenAPI, getParentCategoryAPI } from '@/api/category';
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { getCategoryChildrenAPI, getParentCategoryAPI } from '@/api/category';
-import { getArticlesByCategoryAPI } from '@/api/article';
 
 const route = useRoute();
 
@@ -174,7 +174,7 @@ watch(
 
 .sub-category-index {
     display: flex;
-    width: 1000px;
+    width: 1200px;
     min-height: 500px;
     margin: 20px auto;
     align-items: stretch;
@@ -182,7 +182,7 @@ watch(
 
 .left-nav {
     flex: 1;
-    max-width: calc(1000px * (1 / 4));
+    max-width: calc(1200px * (1 / 4));
     box-sizing: border-box;
 
     .parent-category {
@@ -226,7 +226,7 @@ watch(
 
 .right-content {
     flex: 3;
-    max-width: calc(1000px * (3 / 4));
+    max-width: calc(1200px * (3 / 4));
     box-sizing: border-box;
     padding: 20px;
     margin-left: 10px;

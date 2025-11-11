@@ -2,7 +2,11 @@
     <div class="home-container">
         <div class="content-row">
             <div class="content-left">
-                <Carousel class="carousel" :list="ArticleCarouselList" />
+                <Carousel
+                    v-if="currentCategoryId !== 8"
+                    class="carousel"
+                    :list="ArticleCarouselList"
+                />
                 <SubCategory />
             </div>
             <Recommend class="recommend" />
@@ -11,14 +15,14 @@
 </template>
 
 <script lang="ts" setup>
-import Carousel from '@/components/Carousel.vue';
-import Recommend from '@/views/Layout/components/Recommend.vue';
-import SubCategory from '@/views/Layout/components/SubCategory.vue';
-import { useRoute } from 'vue-router';
 import {
     getArticlesByParentCategoryAPI,
     type ArticleItem,
 } from '@/api/article';
+import Carousel from '@/components/Carousel.vue';
+import Recommend from '@/views/Layout/components/Recommend.vue';
+import SubCategory from '@/views/Layout/components/SubCategory.vue';
+import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const articleList: any = ref([]); // 文章列表
@@ -62,7 +66,7 @@ watch(
 
 .content-row {
     display: flex;
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
     align-items: stretch;
 }
@@ -71,14 +75,14 @@ watch(
     margin: 20px 0;
     margin-right: 20px;
     flex: 2;
-    max-width: calc(1000px * (2 / 3));
+    max-width: calc(1200px * (2 / 3));
     box-sizing: border-box;
 }
 .recommend {
     margin: 20px 0;
     padding-left: 20px;
     flex: 1;
-    max-width: calc(1000px * (1 / 3));
+    max-width: calc(1200px * (1 / 3));
     box-sizing: border-box;
     border-left: 1px solid #e0e0e0;
 }

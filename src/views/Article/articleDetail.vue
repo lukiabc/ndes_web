@@ -1,5 +1,8 @@
 <template>
-    <div class="article-detail-container">
+    <div
+        class="article-detail-container"
+        :class="{ 'backend-mode': isBackend }"
+    >
         <div class="detail-container">
             <!-- 面包屑导航 -->
             <el-breadcrumb separator="/" class="breadcrumb">
@@ -38,9 +41,9 @@
                 <div class="meta-info">
                     <span class="meta-item">来源：{{ article.source }}</span>
                     <span class="meta-item">编辑：{{ article.editor }}</span>
-                    <span class="meta-item"
-                        >发布时间：{{ formatDate(article.publish_date) }}</span
-                    >
+                    <span class="meta-item">
+                        发布时间：{{ formatDate(article.publish_date) }}
+                    </span>
                     <el-tag :type="statusTagType(article.status)" size="small">
                         {{ article.status }}
                     </el-tag>
@@ -64,7 +67,7 @@
 <script setup lang="ts">
 import { getArticleDetailAPI, type ArticleItem } from '@/api/article';
 import { ElMessage } from 'element-plus';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -90,7 +93,6 @@ const loadArticle = async () => {
     try {
         const res = await getArticleDetailAPI(articleId);
         article.value = res.data;
-        console.log(article.value);
     } catch (error) {
         ElMessage.error('获取文章详情失败');
         console.error(error);
@@ -99,7 +101,6 @@ const loadArticle = async () => {
     }
 };
 
-// 生命周期：挂载时加载
 onMounted(() => {
     loadArticle();
 });
@@ -131,7 +132,7 @@ const childCategoryName = computed(() => {
     return article.value?.Category?.category_name || '无子分类';
 });
 
-// 渲染内容
+// 渲染内容（替换图片域名）
 const renderedContent = computed(() => {
     const content = article.value?.content || '';
     return content.replace(
@@ -141,43 +142,61 @@ const renderedContent = computed(() => {
 });
 </script>
 
-<style>
+<style scoped>
+/* 前台模式：自然流式布局 */
 .article-detail-container {
     width: 100%;
-    min-height: 100vh;
     padding: 20px;
+}
+
+/* 后台模式：固定高度 + 滚动 */
+.article-detail-container.backend-mode {
+    height: calc(100vh - 60px); /* 请根据你后台顶部 header 高度调整 */
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .detail-container {
     padding: 20px;
     max-width: 900px;
-    height: 100%;
     margin: 0 auto;
     background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .breadcrumb {
     font-size: 12px;
     color: #666;
+    margin-bottom: 20px;
 }
 
 .title {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
     font-size: 24px;
     font-weight: bold;
     color: #333;
     margin: 20px 0;
 }
 
-.content-body {
-    margin: 0 40px;
-}
-
-.meta-item {
-    margin-right: 20px;
+.meta-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
     font-size: 12px;
     color: #888;
+}
+
+.content-body {
+    margin: 0 40px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.not-found {
+    text-align: center;
+    padding: 40px 0;
 }
 </style>

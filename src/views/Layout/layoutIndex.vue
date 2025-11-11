@@ -9,8 +9,8 @@
 </template>
 
 <script lang="ts" setup>
-import Header from '@/views/Layout/components/Header.vue';
 import Footer from '@/views/Layout/components/Footer.vue';
+import Header from '@/views/Layout/components/Header.vue';
 </script>
 
 <style lang="scss" scoped>
@@ -24,7 +24,7 @@ import Footer from '@/views/Layout/components/Footer.vue';
 
 .content {
     flex: 1;
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
     box-sizing: border-box;
 }

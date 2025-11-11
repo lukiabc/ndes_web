@@ -188,6 +188,10 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.first {
+    padding-top: 20px;
+}
+
 .sub-category {
     border-bottom: 1px solid #a30800;
     padding-bottom: 0px;
@@ -264,9 +268,9 @@ onUnmounted(() => {
 .second {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    padding-top: 20px;
     gap: 20px;
-    margin: 0 5px;
-    width: 660px;
+    width: 800px;
     font-size: 14px;
 
     .card {

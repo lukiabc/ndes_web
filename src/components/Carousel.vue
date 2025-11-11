@@ -1,4 +1,3 @@
-<!-- 轮播图 -->
 <template>
     <div class="home-carousel">
         <el-carousel height="400px" indicator-position="none">
@@ -7,6 +6,7 @@
                 :key="item.id"
                 @mouseenter="showTitle(item.id)"
                 @mouseleave="hideTitle(item.id)"
+                class="carousel-item"
             >
                 <router-link :to="`/article/${item.id}`">
                     <img
@@ -15,7 +15,12 @@
                         alt=""
                         class="carousel-image"
                     />
-                    <img v-else src="@/assets/images/login.png" alt="默认图" />
+                    <img
+                        v-else
+                        src="@/assets/images/login.png"
+                        alt="默认图"
+                        class="carousel-image"
+                    />
                 </router-link>
                 <div class="carousel-title" v-show="hoveredId === item.id">
                     {{ item.title }}
@@ -26,6 +31,8 @@
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue';
+
 const props = defineProps<{
     list: {
         id: number;
@@ -49,17 +56,24 @@ const hideTitle = (id: number) => {
 
 <style lang="scss" scoped>
 .home-carousel {
-    width: 1000px;
+    width: 1200px;
     height: 400px;
     margin: 0 auto;
 
+    .carousel-item {
+        background-color: #a30800;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     .carousel-image {
-        width: 100%;
-        height: 400px;
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
     }
 
     .carousel-title {
-        width: 100%;
         position: absolute;
         bottom: 10px;
         left: 50%;

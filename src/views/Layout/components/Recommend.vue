@@ -91,7 +91,7 @@ watch(
 .recommend-desc {
     font-size: 14px;
     color: #666;
-    margin: 5px 0;
+    margin: 10px 0 20px 0;
 }
 
 :deep(a) {

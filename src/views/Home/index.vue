@@ -9,10 +9,10 @@
 </template>
 
 <script lang="ts" setup>
-import Carousel from '@/components/Carousel.vue';
-import Quanwei from '@/views/Home/components/Quanwei.vue';
-import Category from '@/views/Home/components/Category.vue';
 import { getActiveCarouselsAPI } from '@/api/carousels';
+import Carousel from '@/components/Carousel.vue';
+import Category from '@/views/Home/components/Category.vue';
+import Quanwei from '@/views/Home/components/Quanwei.vue';
 
 const carouselList: any = ref([]);
 const getCarousel = async () => {
@@ -40,7 +40,7 @@ onMounted(() => {
 
 .content-row {
     display: flex;
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
     align-items: stretch;
 }
@@ -48,22 +48,22 @@ onMounted(() => {
 .carousel {
     margin: 20px 0;
     margin-right: 20px;
-    flex: 2;
-    max-width: calc(1000px * (2 / 3));
+    flex: 3;
+    max-width: calc(1200px * (3 / 4));
     box-sizing: border-box;
 }
 
 .quanwei {
     margin: 20px 0;
     flex: 1;
-    max-width: calc(1000px * (1 / 3));
+    max-width: calc(1200px * (1 / 4));
     box-sizing: border-box;
 }
 
 .content {
     flex: 1;
     min-height: 900px;
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
 }
 </style>

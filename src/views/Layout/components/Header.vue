@@ -159,7 +159,7 @@
 <script lang="ts" setup>
 import { getCategoryListAPI } from '@/api/category';
 import { buildTree } from '@/utils/treeUtils';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 interface Category {
@@ -221,16 +221,6 @@ const handleCategoryClick = (item: Category) => {
         selectedId.value = item.category_id;
     }
 };
-
-// // 点击页面其他地方关闭激活状态
-// const handleClickOutside = (e: MouseEvent) => {
-//     const target = e.target as HTMLElement;
-//     // 如果点击不在导航区域内部，则关闭所有状态
-//     if (!target.closest('.nav-box')) {
-//         selectedId.value = null;
-//         hoveredId.value = null;
-//     }
-// };
 
 const updateSelectedIdFromRoute = () => {
     const path = route.path;
@@ -394,7 +384,7 @@ watch(
 }
 
 .nav-box {
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
     color: white;
 }

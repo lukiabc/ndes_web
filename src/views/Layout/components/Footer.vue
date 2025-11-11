@@ -85,7 +85,7 @@
 
 <style lang="scss" scoped>
 .footer-content {
-    margin: 40px 0;
+    margin-top: 40px;
     width: 100%;
     color: #fff;
     line-height: 30px;
@@ -100,7 +100,7 @@
 }
 
 .main {
-    width: 1000px;
+    width: 1200px;
     margin: 0 auto;
     font-size: 13px;
     clear: both;
