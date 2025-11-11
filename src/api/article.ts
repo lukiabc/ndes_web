@@ -53,6 +53,13 @@ export interface SearchResponse {
     >;
 }
 
+export const getStatusAPI = () => {
+    return httpInstance({
+        url: '/article/status-counts',
+        method: 'GET',
+    });
+};
+
 // 获取所有文章列表
 export const getArticleListAPI = (page = 1, pageSize = 10) => {
     return httpInstance<PaginatedResponse<ArticleItem>>({

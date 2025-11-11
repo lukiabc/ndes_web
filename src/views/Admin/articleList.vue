@@ -136,7 +136,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 import {
@@ -144,6 +143,7 @@ import {
     getArticlesByCategoryAPI,
     searchArticlesAPI,
     getArticlesByStatus,
+    getStatusAPI,
     type ArticleItem,
     type SearchResponse,
 } from '@/api/article';
@@ -166,11 +166,28 @@ interface PaginatedResponse<T> {
 }
 
 // 状态选项
-const statusOptions = [
-    { label: '草稿', value: '草稿' },
-    { label: '待审', value: '待审' },
-    { label: '已发布', value: '已发布' },
-];
+const statusOptions = ref<{ label: string; value: string }[]>([]);
+
+const getStatus = async () => {
+    try {
+        const res = await getStatusAPI();
+        // 假设 res.data 是上面那样的数组
+        statusOptions.value = res.data.map((item: any) => ({
+            label: item.status,
+            value: item.status,
+        }));
+    } catch (error) {
+        ElMessage.error('加载状态列表失败');
+        // 设置 fallback（防止下拉框为空）
+        statusOptions.value = [
+            { label: '草稿', value: '草稿' },
+            { label: '待审', value: '待审' },
+            { label: '已发布', value: '已发布' },
+            { label: '退回修订', value: '退回修订' },
+            { label: '拒绝', value: '拒绝' },
+        ];
+    }
+};
 
 // 分类列表
 const categories = ref<{ id: string; name: string }[]>([]);
@@ -226,7 +243,13 @@ const getMediaUrls = (mediaList: ArticleItem['Media']) => {
 // 状态标签颜色
 const statusTagType = (status: string) => {
     return (
-        { 已发布: 'success', 待审: 'warning', 草稿: 'info' }[status] || 'info'
+        {
+            已发布: 'success',
+            待审: 'warning',
+            草稿: 'info',
+            拒绝: 'danger',
+            退回修订: 'warning',
+        }[status] || 'info'
     );
 };
 
@@ -328,6 +351,7 @@ watch([currentPage, pageSize], () => {
 onMounted(() => {
     loadArticles(); // 加载文章列表
     loadCategories(); // 加载分类列表
+    getStatus();
 });
 </script>
 
