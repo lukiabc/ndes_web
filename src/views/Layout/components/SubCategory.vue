@@ -49,7 +49,7 @@
             >
                 <div class="title-box">
                     <router-link
-                        :to="`/category/${item.category_id}`"
+                        :to="`/category/sub/${item.category_id}`"
                         class="card-title"
                     >
                         {{ item.category_name }}

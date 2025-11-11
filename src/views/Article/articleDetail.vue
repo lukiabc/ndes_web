@@ -151,7 +151,7 @@ const renderedContent = computed(() => {
 
 /* 后台模式：固定高度 + 滚动 */
 .article-detail-container.backend-mode {
-    height: calc(100vh - 60px); /* 请根据你后台顶部 header 高度调整 */
+    height: calc(100vh - 60px);
     overflow-y: auto;
     padding: 20px;
     box-sizing: border-box;

@@ -161,6 +161,9 @@ import { getCategoryListAPI } from '@/api/category';
 import { buildTree } from '@/utils/treeUtils';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { useCategoryStore } from '@/stores/categoryStore';
+
+const categoryStore = useCategoryStore();
 
 interface Category {
     category_id: number;
@@ -172,7 +175,6 @@ interface Category {
 
 // 响应式数据
 const hoveredId = ref<number | null>(null); // 控制 hover 显示下拉
-const selectedId = ref<number | null>(null); // 控制点击激活状态
 
 const categories = ref<Category[]>([]);
 const treeData = ref<Category[]>([]);
@@ -181,7 +183,7 @@ const route = useRoute();
 
 // 是否激活（用于背景色）
 const isActive = (id: number): boolean => {
-    return id === selectedId.value;
+    return id === categoryStore.activeParentId;
 };
 
 // 是否显示下拉菜单
@@ -215,10 +217,10 @@ const keepOpen = (id: number) => {
 
 // 点击菜单项
 const handleCategoryClick = (item: Category) => {
-    if (selectedId.value === item.category_id) {
-        selectedId.value = null;
+    if (categoryStore.activeParentId === item.category_id) {
+        categoryStore.activeParentId = null;
     } else {
-        selectedId.value = item.category_id;
+        categoryStore.activeParentId = item.category_id;
     }
 };
 
@@ -227,7 +229,7 @@ const updateSelectedIdFromRoute = () => {
 
     // 首页
     if (path === '/') {
-        selectedId.value = 0;
+        categoryStore.activeParentId = 0;
         return;
     }
 
@@ -237,9 +239,9 @@ const updateSelectedIdFromRoute = () => {
         const id = Number(categoryMatch[1]);
         // 只有在 treeData 顶层存在的才视为有效父分类
         if (treeData.value.some((item) => item.category_id === id)) {
-            selectedId.value = id;
+            categoryStore.activeParentId = id;
         } else {
-            selectedId.value = null;
+            categoryStore.activeParentId = null;
         }
         return;
     }
@@ -270,9 +272,9 @@ const updateSelectedIdFromRoute = () => {
             parentId !== null &&
             treeData.value.some((item) => item.category_id === parentId)
         ) {
-            selectedId.value = parentId;
+            categoryStore.activeParentId = parentId;
         } else {
-            selectedId.value = null;
+            categoryStore.activeParentId = null;
         }
         return;
     }
@@ -293,11 +295,10 @@ onMounted(async () => {
 
             const listWithHome = [homeItem, ...res.data];
             treeData.value = buildTree(listWithHome) as Category[];
-            console.log(treeData.value);
 
             // 默认选中首页
             if (route.path === '/') {
-                selectedId.value = homeItem.category_id; // 设置为首页的 ID
+                categoryStore.activeParentId = homeItem.category_id; // 设置为首页的 ID
             }
         }
     } catch (error) {

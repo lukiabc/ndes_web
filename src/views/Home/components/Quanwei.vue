@@ -2,7 +2,9 @@
     <div class="authority-publish">
         <div class="nav-tabs">
             <span class="tab active">{{ title }}</span>
-            <router-link to="/" class="more">更多 >></router-link>
+            <router-link :to="`/category/sub/${parentId}`" class="more"
+                >更多 >></router-link
+            >
         </div>
 
         <div class="article-list">
@@ -26,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import { getArticlesByParentCategoryAPI } from '@/api/article';
 import { type ArticleItem } from '@/api/article';
 import { useRoute } from 'vue-router';
@@ -36,6 +37,7 @@ const route = useRoute();
 const currentPage = ref(1);
 const articles = ref<ArticleItem[]>([]);
 const title = ref('');
+const parentId = ref(0);
 
 const getArticles = async () => {
     try {
@@ -49,6 +51,8 @@ const getArticles = async () => {
             .slice(0, 7);
         title.value =
             articles.value[0].Category?.ParentCategory?.category_name || '';
+        parentId.value =
+            articles.value[0].Category?.ParentCategory?.category_id || 0;
     } catch (error) {
         console.error('获取文章失败:', error);
     }

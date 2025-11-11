@@ -17,15 +17,12 @@ import Quanwei from '@/views/Home/components/Quanwei.vue';
 const carouselList: any = ref([]);
 const getCarousel = async () => {
     const res = await getActiveCarouselsAPI();
-    console.log(res.data.list, '轮播图数据');
     carouselList.value = res.data.list.map((item: any) => ({
         id: item.article_id,
         title: item.title,
         image: item.cover_image,
     }));
 };
-
-console.log(carouselList.value, '轮播图数据');
 
 onMounted(() => {
     getCarousel();

@@ -1,13 +1,23 @@
 <template>
     <div class="sub-category-index">
         <div class="left-nav">
-            <div class="parent-category">{{ parentTitle }}</div>
+            <div
+                class="parent-category"
+                :class="{ active: currentView === 'parent' }"
+                @click="handleParentClick"
+            >
+                {{ parentTitle }}
+            </div>
             <ul class="child-categories">
                 <li
                     v-for="(item, index) in childCategories"
-                    :key="index"
+                    :key="item.category_id || index"
                     class="child-item"
-                    :class="{ active: currentId === item.category_id }"
+                    :class="{
+                        active:
+                            currentView === 'child' &&
+                            currentId === item.category_id,
+                    }"
                     @click="handleChildClick(item)"
                 >
                     {{ item.category_name }}
@@ -55,62 +65,95 @@
 </template>
 
 <script lang="ts" setup>
-import { getArticlesByCategoryAPI } from '@/api/article';
+import {
+    getArticlesByCategoryAPI,
+    getArticlesByParentCategoryAPI,
+} from '@/api/article';
 import { getCategoryChildrenAPI, getParentCategoryAPI } from '@/api/category';
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useCategoryStore } from '@/stores/categoryStore';
 
 const route = useRoute();
+
+const categoryStore = useCategoryStore();
 
 const childCategories = ref<any[]>([]);
 const articleList = ref<any[]>([]);
 const parentId = ref<number>(0);
-const parentTitle = ref<string>('新闻动态'); // 默认标题
+const parentTitle = ref<string>('');
 
-const currentId = ref<number | null>(null);
+// 当前视图类型
+const currentView = ref<'parent' | 'child'>('parent');
+const currentId = ref<number | null>(null); // 当前选中的子分类 ID
 
-// 分页状态
+// 分页
 const total = ref<number>(0);
 const currentPage = ref<number>(1);
 const pageSize = ref<number>(10);
 
-// 格式化日期
+// 工具函数：格式化日期
 const formatDate = (dateStr: string): string => {
-    return new Date(dateStr).toISOString().split('T')[0];
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
 };
 
-// 解析路由 ID
-const parseRouteId = () => {
+// 解析路由参数中的分类 ID
+const parseRouteId = (): number | null => {
     const id = route.params.id;
     const numId = id ? (Array.isArray(id) ? Number(id[0]) : Number(id)) : NaN;
     return isNaN(numId) ? null : numId;
 };
 
-// 加载分类（父类 + 子类）
+// 加载分类结构
 const loadCategoryStructure = async (id: number) => {
     try {
         const parentRes = await getParentCategoryAPI(id);
         if (parentRes.data?.data === null) {
-            // 说明当前 id 就是顶级分类
             parentId.value = id;
-            // 无法从接口获取名称，可考虑通过子类反推，或设默认值
-            parentTitle.value = '新闻动态';
         } else {
             const parentData = parentRes.data.data;
             parentId.value = parentData.category_id;
             parentTitle.value = parentData.category_name;
         }
 
+        // 获取该父分类下的所有子分类
         const childrenRes = await getCategoryChildrenAPI(parentId.value);
-        childCategories.value = childrenRes.data?.data || [];
+        childCategories.value = Array.isArray(childrenRes.data?.data)
+            ? childrenRes.data.data
+            : [];
     } catch (error) {
         console.error('加载分类结构失败:', error);
         childCategories.value = [];
     }
 };
 
-// 加载文章
-const loadArticles = async () => {
+// 加载父分类文章
+const loadParentArticles = async () => {
+    if (parentId.value <= 0) return;
+
+    try {
+        const res = await getArticlesByParentCategoryAPI(
+            parentId.value,
+            currentPage.value,
+            pageSize.value
+        );
+        const data = res.data || {};
+        const list = Array.isArray(data.list) ? data.list : [];
+        articleList.value = list.filter(
+            (item: any) => item.status === '已发布'
+        );
+        total.value = typeof data.total === 'number' ? data.total : list.length;
+    } catch (error) {
+        console.error('加载父分类文章失败:', error);
+        articleList.value = [];
+        total.value = 0;
+    }
+};
+
+// 加载子分类文章
+const loadChildArticles = async () => {
     if (currentId.value === null) return;
 
     try {
@@ -120,43 +163,80 @@ const loadArticles = async () => {
             pageSize.value
         );
         const data = res.data || {};
-        articleList.value = (data.list || []).filter(
+        const list = Array.isArray(data.list) ? data.list : [];
+        articleList.value = list.filter(
             (item: any) => item.status === '已发布'
         );
-        total.value = data.total || 0;
+        total.value = typeof data.total === 'number' ? data.total : list.length;
     } catch (error) {
-        console.error('加载文章失败:', error);
+        console.error('加载子分类文章失败:', error);
         articleList.value = [];
         total.value = 0;
     }
 };
 
-// 点击左侧子分类
-const handleChildClick = (item: any) => {
-    currentId.value = item.category_id;
-    currentPage.value = 1; // 切换分类时重置到第一页
-    loadArticles();
+// 点击父分类
+const handleParentClick = () => {
+    currentView.value = 'parent';
+    currentId.value = null;
+    currentPage.value = 1;
+    loadParentArticles();
 };
 
-// 分页事件处理
+// 点击子分类
+const handleChildClick = (item: any) => {
+    currentView.value = 'child';
+    currentId.value = item.category_id;
+    currentPage.value = 1;
+    loadChildArticles();
+};
+
+// 分页事件
 const handleSizeChange = (val: number) => {
     pageSize.value = val;
-    loadArticles();
+    if (currentView.value === 'parent') {
+        loadParentArticles();
+    } else {
+        loadChildArticles();
+    }
 };
 
 const handleCurrentChange = (val: number) => {
     currentPage.value = val;
-    loadArticles();
+    if (currentView.value === 'parent') {
+        loadParentArticles();
+    } else {
+        loadChildArticles();
+    }
 };
 
-// 初始化
+// 初始化逻辑
 const initialize = async () => {
     const id = parseRouteId();
-    if (id === null) return;
+    if (id === null) {
+        articleList.value = [];
+        return;
+    }
 
-    currentId.value = id;
     await loadCategoryStructure(id);
-    loadArticles();
+
+    // 判断传入的 id 是父分类还是子分类
+    const isChild = childCategories.value.some(
+        (child) => child.category_id === id
+    );
+
+    if (isChild) {
+        currentView.value = 'child';
+        currentId.value = id;
+        loadChildArticles();
+        // 👇 设置全局激活的父分类 ID
+        categoryStore.setActiveParentId(parentId.value);
+    } else {
+        currentView.value = 'parent';
+        currentId.value = null;
+        loadParentArticles();
+        categoryStore.setActiveParentId(parentId.value); // 父分类自身就是父
+    }
 };
 
 // 监听路由变化
@@ -193,6 +273,13 @@ watch(
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 1px;
+        cursor: pointer; /* 可点击 */
+        user-select: none;
+        transition: background-color 0.2s;
+    }
+
+    .parent-category.active {
+        background-color: darken($primary-base, 10%);
     }
 
     ul.child-categories {

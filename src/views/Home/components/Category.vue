@@ -3,7 +3,9 @@
         <div class="content" v-for="c in categoryList">
             <div class="title-box">
                 <span class="title">{{ c.category_name }}</span>
-                <router-link to="/" class="more">更多 >></router-link>
+                <router-link :to="`/category/sub/${c.category_id}`" class="more"
+                    >更多 >></router-link
+                >
             </div>
             <div class="image-box">
                 <router-link :to="`/article/${c.articles[0].article_id}`">
