@@ -53,6 +53,7 @@ export interface SearchResponse {
     >;
 }
 
+// 获取文章状态
 export const getStatusAPI = () => {
     return httpInstance({
         url: '/article/status-counts',
@@ -133,33 +134,30 @@ export const searchArticlesAPI = (
     });
 };
 
-// 创建文章（投稿或存草稿）
+// 创建文章
 export const createArticleAPI = (
-    formData: FormData,
+    data: Record<string, any>,
     as: 'submit' | 'draft' = 'submit'
 ) => {
     return httpInstance({
         url: `/article/create?as=${as}`,
         method: 'POST',
+        data,
         headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
         },
-        data: formData,
     });
 };
 
 // 编辑文章
-export const editArticleAPI = (
-    articleId: number | string,
-    formData: FormData
-) => {
+export const editArticleAPI = (id: string, data: Record<string, any>) => {
     return httpInstance({
-        url: `/article/edit/${articleId}`,
+        url: `/article/edit/${id}`,
         method: 'PUT',
+        data,
         headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
         },
-        data: formData,
     });
 };
 

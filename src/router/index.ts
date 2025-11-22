@@ -67,7 +67,6 @@ const router = createRouter({
                 },
             ],
         },
-
         {
             path: '/login',
             name: 'Login',
@@ -79,9 +78,26 @@ const router = createRouter({
             component: () => import('@/views/User/userInfo.vue'),
         },
         {
+            path: '/user',
+            name: 'user',
+            component: () => import('@/views/User/userIndex.vue'),
+        },
+        {
             path: '/articleDetail/:id',
             name: 'articleDetailAdmin',
             component: () => import('@/views/Article/articleDetail.vue'),
+        },
+        {
+            path: '/article/create',
+            name: 'createArticle',
+            component: () => import('@/views/Article/articleIndex.vue'),
+            props: { mode: 'create' },
+        },
+        {
+            path: '/article/edit/:id',
+            name: 'editArticle',
+            component: () => import('@/views/Article/articleIndex.vue'),
+            props: true,
         },
     ],
 });
