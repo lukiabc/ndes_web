@@ -53,6 +53,47 @@ export interface SearchResponse {
     >;
 }
 
+// 用户文章标题模糊搜索响应
+export interface UserArticleSearchResponse {
+    user_id: number;
+    keyword: string;
+    total: number;
+    page: number;
+    pageSize: number;
+    list: ArticleItem[];
+}
+
+// 根据用户 ID ,标题模糊查询文章
+export const searchArticlesByUserAPI = (
+    userId: number,
+    title: string = '',
+    page: number = 1,
+    pageSize: number = 10
+) => {
+    return httpInstance<UserArticleSearchResponse>({
+        url: `/article/user/${userId}/search`,
+        method: 'GET',
+        params: {
+            title,
+            page,
+            pageSize,
+        },
+    });
+};
+
+// 根据用户 ID 获取文章列表
+export const getArticlesByUserAPI = (
+    userId: number,
+    page = 1,
+    pageSize = 10
+) => {
+    return httpInstance<PaginatedResponse<ArticleItem>>({
+        url: `/article/user/${userId}`,
+        method: 'GET',
+        params: { page, pageSize },
+    });
+};
+
 // 获取文章状态
 export const getStatusAPI = () => {
     return httpInstance({

@@ -1,150 +1,161 @@
 <template>
     <div class="article-editor">
-        <h1>{{ isEditing ? '编辑文章' : '创建文章' }}</h1>
+        <div class="article-content">
+            <div class="header">
+                <h1>{{ isEditing ? '编辑文章' : '创建文章' }}</h1>
+                <el-button
+                    size="small"
+                    @click="$router.back()"
+                    class="back-button"
+                >
+                    返回
+                </el-button>
+            </div>
 
-        <div class="form-container">
-            <!-- 表单区域 -->
-            <div class="form-section">
-                <div class="form-row">
-                    <label class="required">标题：</label>
-                    <input
-                        v-model="formData.title"
-                        placeholder="请输入文章标题"
-                        class="form-input"
-                        @blur="validateTitle"
-                    />
-                    <span v-if="errors.title" class="error-msg">{{
-                        errors.title
-                    }}</span>
-                </div>
+            <div class="form-container">
+                <!-- 表单区域 -->
+                <div class="form-section">
+                    <div class="form-row">
+                        <label class="required">标题：</label>
+                        <input
+                            v-model="formData.title"
+                            placeholder="请输入文章标题"
+                            class="form-input"
+                            @blur="validateTitle"
+                        />
+                        <span v-if="errors.title" class="error-msg">{{
+                            errors.title
+                        }}</span>
+                    </div>
 
-                <div class="form-row">
-                    <label class="required">分类：</label>
-                    <select
-                        v-model="formData.category_id"
-                        class="form-select"
-                        @change="validateCategory"
-                    >
-                        <option value="">请选择分类</option>
-                        <optgroup
-                            v-for="parent in categories"
-                            :key="parent.category_id"
-                            :label="parent.category_name"
+                    <div class="form-row">
+                        <label class="required">分类：</label>
+                        <select
+                            v-model="formData.category_id"
+                            class="form-select"
+                            @change="validateCategory"
                         >
-                            <option
-                                v-for="child in parent.children"
-                                :key="child.category_id"
-                                :value="child.category_id"
+                            <option value="">请选择分类</option>
+                            <optgroup
+                                v-for="parent in categories"
+                                :key="parent.category_id"
+                                :label="parent.category_name"
                             >
-                                {{ child.category_name }}
-                            </option>
-                        </optgroup>
-                    </select>
-                    <span v-if="errors.category" class="error-msg">{{
-                        errors.category
-                    }}</span>
-                </div>
+                                <option
+                                    v-for="child in parent.children"
+                                    :key="child.category_id"
+                                    :value="child.category_id"
+                                >
+                                    {{ child.category_name }}
+                                </option>
+                            </optgroup>
+                        </select>
+                        <span v-if="errors.category" class="error-msg">{{
+                            errors.category
+                        }}</span>
+                    </div>
 
-                <div class="form-row">
-                    <label class="required">来源：</label>
-                    <input
-                        v-model="formData.source"
-                        placeholder="请输入文章来源"
-                        class="form-input"
-                    />
-                </div>
-
-                <div class="form-row">
-                    <label class="required">编辑者：</label>
-                    <input
-                        v-model="formData.editor"
-                        placeholder="请输入编辑者"
-                        class="form-input"
-                    />
-                </div>
-
-                <!-- 富文本编辑器 -->
-                <div class="editor-section">
-                    <label class="required">内容：</label>
-                    <span v-if="errors.content" class="error-msg">{{
-                        errors.content
-                    }}</span>
-                    <div class="editor-wrapper">
-                        <Toolbar
-                            class="toolbar"
-                            :editor="editorRef"
-                            :defaultConfig="toolbarConfig"
-                            :mode="mode"
+                    <div class="form-row">
+                        <label class="required">来源：</label>
+                        <input
+                            v-model="formData.source"
+                            placeholder="请输入文章来源"
+                            class="form-input"
                         />
-                        <Editor
-                            class="editor"
-                            v-model="formData.content"
-                            :defaultConfig="editorConfig"
-                            :mode="mode"
-                            @onCreated="handleCreated"
+                    </div>
+
+                    <div class="form-row">
+                        <label class="required">编辑者：</label>
+                        <input
+                            v-model="formData.editor"
+                            placeholder="请输入编辑者"
+                            class="form-input"
                         />
+                    </div>
+
+                    <!-- 富文本编辑器 -->
+                    <div class="editor-section">
+                        <label class="required">内容：</label>
+                        <span v-if="errors.content" class="error-msg">{{
+                            errors.content
+                        }}</span>
+                        <div class="editor-wrapper">
+                            <Toolbar
+                                class="toolbar"
+                                :editor="editorRef"
+                                :defaultConfig="toolbarConfig"
+                                :mode="mode"
+                            />
+                            <Editor
+                                class="editor"
+                                v-model="formData.content"
+                                :defaultConfig="editorConfig"
+                                :mode="mode"
+                                @onCreated="handleCreated"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- 定时发布时间选择 -->
+                    <div v-if="showScheduleTime" class="form-row">
+                        <label class="required">定时发布时间：</label>
+                        <input
+                            v-model="formData.scheduled_publish_date"
+                            type="datetime-local"
+                            class="form-input"
+                            :min="minDateTime"
+                            @change="validateScheduleTime"
+                        />
+                        <span v-if="errors.schedule" class="error-msg">{{
+                            errors.schedule
+                        }}</span>
                     </div>
                 </div>
 
-                <!-- 定时发布时间选择 -->
-                <div v-if="showScheduleTime" class="form-row">
-                    <label class="required">定时发布时间：</label>
-                    <input
-                        v-model="formData.scheduled_publish_date"
-                        type="datetime-local"
-                        class="form-input"
-                        :min="minDateTime"
-                        @change="validateScheduleTime"
-                    />
-                    <span v-if="errors.schedule" class="error-msg">{{
-                        errors.schedule
-                    }}</span>
+                <!-- 操作按钮 -->
+                <div class="action-buttons">
+                    <button
+                        @click="handleSubmit('draft')"
+                        class="btn btn-secondary"
+                        :disabled="submitting"
+                    >
+                        {{
+                            submitting && submitType === 'draft'
+                                ? '保存中...'
+                                : '保存草稿'
+                        }}
+                    </button>
+                    <button
+                        @click="handleSubmit('submit')"
+                        class="btn btn-primary"
+                        :disabled="submitting"
+                    >
+                        {{
+                            submitting && submitType === 'submit'
+                                ? '提交中...'
+                                : '投稿发布'
+                        }}
+                    </button>
+                    <button
+                        @click="toggleSchedule"
+                        class="btn btn-schedule"
+                        :disabled="submitting"
+                    >
+                        {{ showScheduleTime ? '取消定时' : '定时发布' }}
+                    </button>
+                    <button
+                        v-if="showScheduleTime"
+                        @click="handleSubmit('schedule')"
+                        class="btn btn-success"
+                        :disabled="submitting"
+                    >
+                        {{
+                            submitting && submitType === 'schedule'
+                                ? '提交中...'
+                                : '确认定时发布'
+                        }}
+                    </button>
                 </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="action-buttons">
-                <button
-                    @click="handleSubmit('draft')"
-                    class="btn btn-secondary"
-                    :disabled="submitting"
-                >
-                    {{
-                        submitting && submitType === 'draft'
-                            ? '保存中...'
-                            : '保存草稿'
-                    }}
-                </button>
-                <button
-                    @click="handleSubmit('submit')"
-                    class="btn btn-primary"
-                    :disabled="submitting"
-                >
-                    {{
-                        submitting && submitType === 'submit'
-                            ? '提交中...'
-                            : '投稿发布'
-                    }}
-                </button>
-                <button
-                    @click="toggleSchedule"
-                    class="btn btn-schedule"
-                    :disabled="submitting"
-                >
-                    {{ showScheduleTime ? '取消定时' : '定时发布' }}
-                </button>
-                <button
-                    v-if="showScheduleTime"
-                    @click="handleSubmit('schedule')"
-                    class="btn btn-success"
-                    :disabled="submitting"
-                >
-                    {{
-                        submitting && submitType === 'schedule'
-                            ? '提交中...'
-                            : '确认定时发布'
-                    }}
-                </button>
             </div>
         </div>
     </div>
@@ -164,19 +175,15 @@ import { getCategoryListAPI } from '@/api/category';
 import { uploadFileAPI } from '@/api/uploads';
 import { useUserStore } from '@/stores/userStore';
 
-// ========== Props ==========
 const props = defineProps({
     id: { type: String, default: null },
 });
 
-// ========== Store ==========
 const userStore = useUserStore();
 
-// ========== 状态计算 ==========
 const isEditing = computed(() => !!props.id);
 const articleId = computed(() => props.id || null);
 
-// ========== 常量 ==========
 const ARTICLE_STATUS = {
     DRAFT: '草稿',
     PUBLISHED: '已发布',
@@ -185,6 +192,7 @@ const ARTICLE_STATUS = {
     SCHEDULED: '待发布',
 };
 
+// 日期格式化
 function toLocalDatetimeString(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -194,7 +202,7 @@ function toLocalDatetimeString(date) {
     return `${y}-${m}-${d}T${h}:${i}`;
 }
 
-// ========== 编辑器配置 ==========
+// 编辑器实例
 const editorRef = shallowRef();
 const mode = 'default';
 
@@ -245,7 +253,6 @@ const editorConfig = {
     },
 };
 
-// ========== 响应式数据 ==========
 const formData = reactive({
     title: '',
     category_id: '',
@@ -268,14 +275,14 @@ const submitType = ref('');
 const showScheduleTime = ref(false);
 const isUnmounted = ref(false);
 
-// ========== 计算属性 ==========
+// 最小可定时间
 const minDateTime = computed(() => {
     const now = new Date();
     now.setMinutes(now.getMinutes() + 5);
     return toLocalDatetimeString(now);
 });
 
-// ========== 方法 ==========
+// 获取分类列表
 const fetchCategories = async () => {
     try {
         const response = await getCategoryListAPI();
@@ -298,6 +305,7 @@ const fetchCategories = async () => {
     }
 };
 
+// 加载文章详情
 const fetchArticle = async (id) => {
     try {
         const res = await getArticleDetailAPI(id);
@@ -391,6 +399,7 @@ const validateForm = (type) => {
     return isValid;
 };
 
+// 切换定时发布
 const toggleSchedule = () => {
     showScheduleTime.value = !showScheduleTime.value;
     if (showScheduleTime.value) {
@@ -403,6 +412,7 @@ const toggleSchedule = () => {
     }
 };
 
+// 重置表单
 const resetForm = () => {
     if (isUnmounted.value || !editorRef.value) return;
 
@@ -488,7 +498,6 @@ const handleSubmit = async (type) => {
     }
 };
 
-// ========== 生命周期 ==========
 onMounted(async () => {
     document.title = isEditing.value ? '编辑文章' : '创建文章';
     await fetchCategories();
@@ -507,32 +516,36 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .article-editor {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    max-height: calc(100vh - 40px);
+    height: calc(100vh - 10px);
     overflow-y: auto;
+    padding: 20px;
     box-sizing: border-box;
-
-    &::-webkit-scrollbar {
-        width: 1px;
-    }
-    &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }
 
     h1 {
         font-size: 24px;
         margin-bottom: 20px;
+        margin-left: 20px;
         color: #333;
+    }
+}
+
+.article-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .back-button {
+        margin-right: 25px;
+        margin-bottom: 10px;
+        border: none;
+        border-bottom: 1px solid #a30800;
     }
 }
 
@@ -672,11 +685,11 @@ onBeforeUnmount(() => {
         }
 
         &.btn-primary {
-            background: #409eff;
+            background: #a30800;
             color: #fff;
 
             &:hover:not(:disabled) {
-                background: #66b1ff;
+                background: #d14c44;
             }
         }
 
@@ -690,20 +703,20 @@ onBeforeUnmount(() => {
         }
 
         &.btn-schedule {
-            background: #e6a23c;
+            background: #ffb302;
             color: #fff;
 
             &:hover:not(:disabled) {
-                background: #ebb563;
+                background: #ffca28;
             }
         }
 
         &.btn-success {
-            background: #67c23a;
+            background: #1dc779;
             color: #fff;
 
             &:hover:not(:disabled) {
-                background: #85ce61;
+                background: #36d399;
             }
         }
     }

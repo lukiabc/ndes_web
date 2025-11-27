@@ -81,6 +81,7 @@ const router = createRouter({
             path: '/user',
             name: 'user',
             component: () => import('@/views/User/userIndex.vue'),
+            children: [],
         },
         {
             path: '/articleDetail/:id',
