@@ -91,13 +91,13 @@ const router = createRouter({
         {
             path: '/article/create',
             name: 'createArticle',
-            component: () => import('@/views/Article/articleIndex.vue'),
+            component: () => import('@/views/Article/article.vue'),
             props: { mode: 'create' },
         },
         {
             path: '/article/edit/:id',
             name: 'editArticle',
-            component: () => import('@/views/Article/articleIndex.vue'),
+            component: () => import('@/views/Article/article.vue'),
             props: true,
         },
     ],
