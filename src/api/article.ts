@@ -16,6 +16,7 @@ export interface ArticleItem {
     title: string;
     content: string;
     publish_date?: string;
+    scheduled_publish_date?: string;
     status: '已发布' | '待审' | '草稿';
     source?: string;
     editor?: string;

@@ -481,7 +481,7 @@ const handleCreated = (editor) => {
     editorRef.value = editor;
 };
 
-const showMessage = (text, type = 'success') => {
+const showMessage = (text: string, type: 'success' | 'warning' | 'info' | 'error' = 'success') => {
     ElMessage({
         message: text,
         type,
@@ -596,7 +596,7 @@ const handleSubmit = async (type) => {
             category_id: formData.category_id,
             user_id: userStore.userInfo.result.user_id,
             action,
-        };
+        } as any;
 
         if (formData.source) submitData.source = formData.source;
         if (formData.editor) submitData.editor = formData.editor;
