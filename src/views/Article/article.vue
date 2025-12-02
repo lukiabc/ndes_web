@@ -265,31 +265,31 @@
 </template>
 
 <script lang="ts" setup>
-import '@wangeditor/editor/dist/css/style.css';
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
-import { ElMessage } from 'element-plus';
 import {
-    User,
-    Document,
-    Edit,
-    Star,
-    Clock,
-    Refresh,
-    SwitchButton,
-    ArrowRight,
-    SuccessFilled,
-    InfoFilled,
-    WarningFilled,
-    CircleCloseFilled,
-} from '@element-plus/icons-vue';
-import {
-    getArticleDetailAPI,
     createArticleAPI,
     editArticleAPI,
+    getArticleDetailAPI,
 } from '@/api/article';
 import { getCategoryListAPI } from '@/api/category';
 import { uploadFileAPI } from '@/api/uploads';
 import { useUserStore } from '@/stores/userStore';
+import {
+    ArrowRight,
+    CircleCloseFilled,
+    Clock,
+    Document,
+    Edit,
+    InfoFilled,
+    Refresh,
+    Star,
+    SuccessFilled,
+    SwitchButton,
+    User,
+    WarningFilled,
+} from '@element-plus/icons-vue';
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import '@wangeditor/editor/dist/css/style.css';
+import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 
 const props = defineProps({
@@ -481,7 +481,10 @@ const handleCreated = (editor) => {
     editorRef.value = editor;
 };
 
-const showMessage = (text: string, type: 'success' | 'warning' | 'info' | 'error' = 'success') => {
+const showMessage = (
+    text: string,
+    type: 'success' | 'warning' | 'info' | 'error' = 'success'
+) => {
     ElMessage({
         message: text,
         type,
