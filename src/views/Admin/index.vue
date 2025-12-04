@@ -24,7 +24,7 @@
         </el-header>
 
         <el-container>
-            <el-aside width="150px">
+            <el-aside width="130px">
                 <el-menu
                     active-text-color="#ffd04b"
                     background-color="#a30800"
@@ -36,53 +36,21 @@
                     @close="handleClose"
                     router
                 >
-                    <el-sub-menu index="1">
-                        <template #title>
-                            <span>用户管理</span>
-                        </template>
-                        <el-menu-item index="/admin/userList"
-                            >用户列表</el-menu-item
-                        >
-                    </el-sub-menu>
-
-                    <el-sub-menu index="2">
-                        <template #title>
-                            <span>分类管理</span>
-                        </template>
-                        <el-menu-item index="/admin/categoryList"
-                            >分类列表</el-menu-item
-                        >
-                    </el-sub-menu>
-
-                    <el-sub-menu index="3">
-                        <template #title>
-                            <span>文章管理</span>
-                        </template>
-                        <el-menu-item index="/admin/articleList"
-                            >文章列表</el-menu-item
-                        >
-                    </el-sub-menu>
-
-                    <el-sub-menu index="4">
-                        <template #title>
-                            <span>敏感词管理</span>
-                        </template>
-                        <el-menu-item index="/admin/sensitiveWordList"
-                            >敏感词列表</el-menu-item
-                        >
-                    </el-sub-menu>
-
-                    <el-sub-menu index="5">
-                        <template #title>
-                            <span>审核管理</span>
-                        </template>
-                        <el-menu-item index="/admin/nocourse"
-                            >文章审核</el-menu-item
-                        >
-                        <el-menu-item index="/admin/yescourse"
-                            >审核记录</el-menu-item
-                        >
-                    </el-sub-menu>
+                    <el-menu-item index="/admin/userList"
+                        >用户列表</el-menu-item
+                    >
+                    <el-menu-item index="/admin/categoryList"
+                        >分类列表</el-menu-item
+                    >
+                    <el-menu-item index="/admin/articleList"
+                        >文章列表</el-menu-item
+                    >
+                    <el-menu-item index="/admin/sensitiveWordList"
+                        >敏感词列表</el-menu-item
+                    >
+                    <el-menu-item index="/admin/reviewArticle"
+                        >文章审核</el-menu-item
+                    >
                 </el-menu>
             </el-aside>
             <el-main>

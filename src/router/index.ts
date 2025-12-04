@@ -65,6 +65,11 @@ const router = createRouter({
                     name: 'articleList',
                     component: () => import('@/views/Admin/articleList.vue'),
                 },
+                {
+                    path: 'reviewArticle',
+                    name: 'reviewArticle',
+                    component: () => import('@/views/Admin/reviewArticle.vue'),
+                },
             ],
         },
         {
