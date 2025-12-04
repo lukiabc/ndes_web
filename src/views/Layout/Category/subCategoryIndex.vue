@@ -139,7 +139,7 @@ const loadParentArticles = async () => {
             currentPage.value,
             pageSize.value
         );
-        const data = res.data || {};
+        const data = res.data;
         const list = Array.isArray(data.list) ? data.list : [];
         articleList.value = list.filter(
             (item: any) => item.status === '已发布'
@@ -162,7 +162,7 @@ const loadChildArticles = async () => {
             currentPage.value,
             pageSize.value
         );
-        const data = res.data || {};
+        const data = res.data;
         const list = Array.isArray(data.list) ? data.list : [];
         articleList.value = list.filter(
             (item: any) => item.status === '已发布'
