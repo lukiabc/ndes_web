@@ -1,5 +1,11 @@
 import httpInstance from '@/utils/http';
 
+export interface ReviewSubmitData {
+    reviewer: number;
+    review_result: '通过' | '拒绝' | '退回修订';
+    review_comments?: string; // 可选
+}
+
 // 获取谋篇文章的所有审核记录
 export const getReviewsAPI = (articleId: number) => {
     return httpInstance({
@@ -9,34 +15,10 @@ export const getReviewsAPI = (articleId: number) => {
 };
 
 // 审核
-export const reviewArticleAPI = (
-    articleId: number,
-    data: {
-        reviewer: number;
-        review_result: '通过' | '拒绝' | '退回修订';
-        review_comments?: string;
-    }
-) => {
+export const reviewArticleAPI = (articleId: number, data: ReviewSubmitData) => {
     return httpInstance({
         url: `/reviews/${articleId}`,
         method: 'POST',
         data,
-    });
-};
-
-// 模糊搜索“待审”状态的文章（标题或内容）
-export const searchPendingArticlesAPI = (
-    keyword: string,
-    page: number = 1,
-    pageSize: number = 10
-) => {
-    return httpInstance({
-        url: '/article/pending/search',
-        method: 'GET',
-        params: {
-            keyword,
-            page,
-            pageSize,
-        },
     });
 };

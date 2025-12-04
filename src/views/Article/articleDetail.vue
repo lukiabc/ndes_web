@@ -67,6 +67,64 @@
                 <div class="content-body" v-html="renderedContent" />
 
                 <el-divider />
+
+                <div v-if="isReviewMode" class="review-section">
+                    <h3 class="section-title">审核操作</h3>
+                    <el-form
+                        :model="reviewForm"
+                        label-width="80px"
+                        style="max-width: 600px"
+                    >
+                        <el-form-item label="审核结果">
+                            <el-radio-group v-model="reviewForm.review_result">
+                                <el-radio
+                                    v-for="opt in reviewOptions"
+                                    :key="opt.value"
+                                    :label="opt.value"
+                                    >{{ opt.label }}</el-radio
+                                >
+                            </el-radio-group>
+                        </el-form-item>
+
+                        <el-form-item label="审核意见">
+                            <el-input
+                                v-model="reviewForm.review_comments"
+                                type="textarea"
+                                :rows="4"
+                                placeholder="请输入审核意见，或从下方快速选择"
+                            />
+                        </el-form-item>
+
+                        <!-- 快速选择预设意见 -->
+                        <el-form-item label="快速意见">
+                            <div class="preset-comments">
+                                <el-button
+                                    v-for="(comment, index) in presetComments[
+                                        reviewForm.review_result
+                                    ]"
+                                    :key="index"
+                                    size="small"
+                                    @click="
+                                        reviewForm.review_comments = comment
+                                    "
+                                >
+                                    {{ comment }}
+                                </el-button>
+                            </div>
+                        </el-form-item>
+
+                        <el-form-item>
+                            <el-button
+                                type="primary"
+                                @click="submitReview"
+                                :loading="submitting"
+                            >
+                                提交审核
+                            </el-button>
+                            <el-button @click="$router.back()">取消</el-button>
+                        </el-form-item>
+                    </el-form>
+                </div>
             </div>
 
             <div v-else class="not-found">
@@ -80,11 +138,89 @@
 import { getArticleDetailAPI, type ArticleItem } from '@/api/article';
 import { ElMessage } from 'element-plus';
 import { onMounted, ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { reviewArticleAPI } from '@/api/reviews';
+import { useUserStore } from '@/stores/userStore';
 
 const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
 const article = ref<ArticleItem | null>(null);
 const loading = ref(false);
+
+// 审核选项配置
+const reviewOptions = [
+    { value: '通过', label: '通过' },
+    { value: '退回修订', label: '退回修订' },
+    { value: '拒绝', label: '拒绝' },
+] as const;
+
+// 预设审核意见
+const presetComments = {
+    通过: [
+        '符合平台内容标准，无违规风险，同意发布。',
+        '内容原创性良好，结构完整，审核通过。',
+        '符合栏目定位，内容健康有益，审核通过。',
+        '无事实错误与逻辑漏洞，同意按计划发布时间发布。',
+    ],
+    退回修订: [
+        '语言表达不规范，请润色后再提交。',
+        '数据来源未标注，请注明引用出处。',
+        '标题与正文内容不符，建议修改标题或调整内容。',
+        '存在主观臆断，建议补充客观依据。',
+        '格式不符合投稿规范，请参照模板调整。',
+    ],
+    拒绝: [
+        '内容违反平台政策，不予发布。',
+        '涉嫌抄袭或侵权，审核不通过。',
+        '主题不符合本平台定位，拒绝发布。',
+        '涉及敏感政治话题，不符合内容安全规范。',
+        '广告营销性质过强，不符合内容要求。',
+        '内容低质、拼凑或无实质信息，拒绝发布。',
+    ],
+} satisfies Record<ReviewResult, string[]>;
+
+type ReviewResult = (typeof reviewOptions)[number]['value'];
+
+const reviewForm = ref<{
+    review_result: ReviewResult;
+    review_comments: string;
+}>({
+    review_result: reviewOptions[0].value,
+    review_comments: '',
+});
+const submitting = ref(false);
+
+const submitReview = async () => {
+    if (!article.value) {
+        ElMessage.warning('文章信息未加载');
+        return;
+    }
+
+    const userId = userStore.userInfo.result.user_id;
+    submitting.value = true;
+    try {
+        await reviewArticleAPI(article.value.article_id, {
+            reviewer: Number(userId),
+            review_result: reviewForm.value.review_result,
+            review_comments:
+                reviewForm.value.review_comments.trim() || undefined,
+        });
+
+        ElMessage.success('审核提交成功！');
+        router.push({ name: 'reviewArticleList' });
+    } catch (error) {
+        ElMessage.error(error?.response?.data?.message || '审核失败，请重试');
+        console.error('审核错误:', error);
+    } finally {
+        submitting.value = false;
+    }
+};
+
+// 判断是否为审核模式
+const isReviewMode = computed(() => {
+    return route.query.mode === 'review';
+});
 
 // 判断是否为后台页面
 const isBackend = computed(() => {
@@ -163,7 +299,7 @@ const renderedContent = computed(() => {
 
 /* 后台模式：固定高度 + 滚动 */
 .article-detail-container.backend-mode {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 10px);
     overflow-y: auto;
     padding: 20px;
     box-sizing: border-box;
@@ -217,5 +353,21 @@ const renderedContent = computed(() => {
 .not-found {
     text-align: center;
     padding: 40px 0;
+}
+
+.section-title {
+    margin: 20px 10px;
+}
+
+.preset-comments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.preset-comments .el-button--small {
+    padding: 6px 10px;
+    font-size: 12px;
 }
 </style>

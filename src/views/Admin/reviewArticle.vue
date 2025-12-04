@@ -42,7 +42,7 @@
                     />
                 </template>
             </el-table-column>
-            <el-table-column label="父分类" width="150" sortable>
+            <el-table-column label="父分类" width="120" sortable>
                 <template #default="scope">
                     {{
                         scope.row.Category?.ParentCategory?.category_name ||
@@ -51,7 +51,7 @@
                 </template>
             </el-table-column>
 
-            <el-table-column label="子分类" width="150" sortable>
+            <el-table-column label="子分类" width="180" sortable>
                 <template #default="scope">
                     {{ scope.row.Category?.category_name || '未分类' }}
                 </template>
@@ -88,11 +88,8 @@
 <script lang="ts" setup>
 import { getArticlesByStatus, type ArticleItem } from '@/api/article';
 import { debounce } from 'lodash-es';
-import {
-    getReviewsAPI,
-    reviewArticleAPI,
-    searchPendingArticlesAPI,
-} from '@/api/reviews';
+import { useRouter } from 'vue-router';
+import { searchPendingArticlesAPI } from '@/api/article';
 
 const articleList = ref<ArticleItem[]>([]);
 const searchKey = ref('');
@@ -100,6 +97,7 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const loading = ref(false);
+const router = useRouter();
 
 // 分页响应类型
 interface PaginatedResponse<T> {
@@ -127,7 +125,11 @@ const getExcerpt = (content: string) => {
 };
 
 const handleReview = (row: ArticleItem) => {
-    console.log(row);
+    router.push({
+        name: 'articleDetailAdmin',
+        params: { id: row.article_id },
+        query: { mode: 'review' },
+    });
 };
 
 const loadArticles = async () => {

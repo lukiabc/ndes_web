@@ -64,6 +64,23 @@ export interface UserArticleSearchResponse {
     list: ArticleItem[];
 }
 
+// 模糊搜索“待审”状态的文章（标题或内容）
+export const searchPendingArticlesAPI = (
+    keyword: string,
+    page: number = 1,
+    pageSize: number = 10
+) => {
+    return httpInstance({
+        url: '/article/pending/search',
+        method: 'GET',
+        params: {
+            keyword,
+            page,
+            pageSize,
+        },
+    });
+};
+
 // 根据用户 ID ,标题模糊查询文章
 export const searchArticlesByUserAPI = (
     userId: number,
