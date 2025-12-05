@@ -29,7 +29,7 @@
                     active-text-color="#ffd04b"
                     background-color="#a30800"
                     class="el-menu-vertical-demo"
-                    default-active="2"
+                    :default-active="activeMenu"
                     text-color="#fff"
                     style="min-height: 780px"
                     @open="handleOpen"
@@ -37,19 +37,22 @@
                     router
                 >
                     <el-menu-item index="/admin/userList"
-                        >用户列表</el-menu-item
+                        >用户管理</el-menu-item
                     >
                     <el-menu-item index="/admin/categoryList"
-                        >分类列表</el-menu-item
+                        >分类管理</el-menu-item
                     >
                     <el-menu-item index="/admin/articleList"
-                        >文章列表</el-menu-item
+                        >文章管理</el-menu-item
                     >
                     <el-menu-item index="/admin/sensitiveWordList"
-                        >敏感词列表</el-menu-item
+                        >敏感词管理</el-menu-item
                     >
                     <el-menu-item index="/admin/reviewArticle"
                         >文章审核</el-menu-item
+                    >
+                    <el-menu-item index="/admin/reviewRecords"
+                        >审核记录</el-menu-item
                     >
                 </el-menu>
             </el-aside>
@@ -63,12 +66,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { Setting } from '@element-plus/icons-vue';
 import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
+
+const activeMenu = computed(() => {
+    return route.path;
+});
 
 const handleCommand = (command: string) => {
     if (command === 'logout') {

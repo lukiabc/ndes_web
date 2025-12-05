@@ -70,6 +70,11 @@ const router = createRouter({
                     name: 'reviewArticleList',
                     component: () => import('@/views/Admin/reviewArticle.vue'),
                 },
+                {
+                    path: 'reviewRecords',
+                    name: 'reviewRecords',
+                    component: () => import('@/views/Admin/reviewRecords.vue'),
+                },
             ],
         },
         {
