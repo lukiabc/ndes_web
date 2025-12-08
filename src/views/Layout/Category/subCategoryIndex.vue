@@ -39,7 +39,7 @@
                         <span class="article-title">{{ item.title }}</span>
                     </router-link>
                     <span class="article-date">
-                        [{{ formatDate(item.scheduled_publish_date) }}]
+                        [{{ formatDate(item.publish_date) }}]
                     </span>
                 </li>
             </ul>
@@ -251,6 +251,7 @@ watch(
 
 <style lang="scss" scoped>
 @use '@/style/element-variables.scss' as *;
+@use 'sass:color';
 
 .sub-category-index {
     display: flex;
@@ -279,7 +280,7 @@ watch(
     }
 
     .parent-category.active {
-        background-color: darken($primary-base, 10%);
+        background-color: color.adjust($primary-base, $lightness: -10%);
     }
 
     ul.child-categories {

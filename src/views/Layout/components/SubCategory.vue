@@ -9,7 +9,7 @@
                     <router-link
                         v-for="item in subCategoryList"
                         :key="item.category_id"
-                        :to="`/category/${item.category_id}`"
+                        :to="`/category/sub/${item.category_id}`"
                         class="nav-item"
                         :class="{ hovered: hoveredId === item.category_id }"
                         @mouseenter="onMouseEnter(item.category_id)"
@@ -36,7 +36,7 @@
                     </div>
                     <span class="article-date">
                         <el-icon><Clock /></el-icon
-                        >{{ formatDateTime(item.scheduled_publish_date) }}</span
+                        >{{ formatDateTime(item.publish_date) }}</span
                     >
                 </div>
             </div>
