@@ -2,13 +2,15 @@
 import httpInstance from '@/utils/http';
 
 export interface Carousel {
+    carousel_id?: number;
     article_id: number;
-    cover_image: string;
     title: string;
+    cover_image: string;
     sort_order: number;
     is_active: boolean;
     start_play_date?: string;
     end_play_date?: string;
+    created_at: string;
 }
 
 // 获取启用的轮播图列表

@@ -171,8 +171,8 @@
     <!-- 轮播图详情弹窗 -->
     <CarouselDetailDialog
         v-model="dialogVisible"
-        :carousel-item="selectedCarouselItem"
-        @close="selectedCarouselItem = null"
+        :carousel-item="selectedCarousel"
+        @close="selectedCarousel = null"
     />
 
     <!-- 加入轮播图弹窗 -->
@@ -197,7 +197,7 @@ import {
     type ArticleItem,
 } from '@/api/article';
 import { getCategoryListAPI } from '@/api/category';
-import { getCarouselsAPI } from '@/api/carousels';
+import { getCarouselsAPI, type Carousel } from '@/api/carousels';
 
 // 组件导入
 import AddToCarouselDialog from '@/views/Admin/components/AddToCarouselDialog.vue';
@@ -221,21 +221,8 @@ interface PaginatedResponse<T> {
 // 文章项扩展，包含轮播图信息
 interface ArticleItemWithCarousel extends ArticleItem {
     inCarousel?: boolean;
-    carouselItem?: CarouselItem | null;
+    carouselItem?: Carousel | null;
     isCarouselActiveNow?: boolean;
-}
-
-// 轮播图项结构
-interface CarouselItem {
-    id?: number;
-    article_id: number;
-    title: string;
-    cover_image: string;
-    sort_order: number;
-    is_active: boolean;
-    start_play_date?: string;
-    end_play_date?: string;
-    created_at: string;
 }
 
 const router = useRouter();
@@ -250,10 +237,10 @@ const pageSize = ref(10);
 const loading = ref(false);
 
 // 轮播图项映射表
-const activeCarouselsMap = ref<Map<number, CarouselItem>>(new Map());
+const activeCarouselsMap = ref<Map<number, Carousel>>(new Map());
 const dialogVisible = ref(false); // 轮播图详情弹窗控制
 // 当前选中的轮播图项，用于详情弹窗
-const selectedCarouselItem = ref<CarouselItem | null>(null);
+const selectedCarousel = ref<Carousel | null>(null);
 
 // 加入轮播图弹窗控制
 const addToCarouselDialogVisible = ref(false);
@@ -317,7 +304,7 @@ const highlightText = (text: string, keyword: string) => {
 };
 
 // 判断轮播项当前是否实际生效
-const isCarouselActiveNow = (item: CarouselItem): boolean => {
+const isCarouselActiveNow = (item: Carousel): boolean => {
     if (!item.is_active) return false;
 
     const now = new Date();
@@ -372,7 +359,7 @@ const getCarouselButtonClass = (article: ArticleItemWithCarousel): string => {
 };
 
 // 根据轮播项状态返回按钮文字
-const getCarouselButtonTextByTime = (item: CarouselItem | null): string => {
+const getCarouselButtonTextByTime = (item: Carousel | null): string => {
     if (!item) return '已在轮播';
 
     const now = new Date();
@@ -439,8 +426,8 @@ const loadCategories = async () => {
 const loadCarouselArticleIds = async () => {
     try {
         const res = await getCarouselsAPI();
-        const map = new Map<number, CarouselItem>();
-        (res.data.list || []).forEach((item: CarouselItem) => {
+        const map = new Map<number, Carousel>();
+        (res.data.list || []).forEach((item: Carousel) => {
             if (item.article_id) {
                 map.set(item.article_id, item);
             }
@@ -561,7 +548,7 @@ const handleCarouselAction = (article: ArticleItemWithCarousel) => {
         // 已在轮播 → 打开详情弹窗
         const item = activeCarouselsMap.value.get(article.article_id);
         if (item) {
-            selectedCarouselItem.value = item;
+            selectedCarousel.value = item;
             dialogVisible.value = true;
         } else {
             ElMessage.warning('未找到对应的轮播图记录');

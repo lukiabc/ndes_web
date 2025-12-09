@@ -75,6 +75,11 @@ const router = createRouter({
                     name: 'reviewRecords',
                     component: () => import('@/views/Admin/reviewRecords.vue'),
                 },
+                {
+                    path: 'carouselList',
+                    name: 'carouselList',
+                    component: () => import('@/views/Admin/carouselList.vue'),
+                },
             ],
         },
         {

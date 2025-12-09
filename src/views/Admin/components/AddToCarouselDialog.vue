@@ -2,7 +2,7 @@
 <template>
     <el-dialog
         v-model="visible"
-        title="添加到轮播图"
+        :title="isEdit ? '编辑轮播图' : '添加到轮播图'"
         width="500px"
         @close="resetForm"
     >
@@ -45,6 +45,28 @@
                 <el-input v-model="form.title" placeholder="请输入轮播图标题" />
             </el-form-item>
 
+            <!-- 状态开关 -->
+            <el-form-item label="状态">
+                <el-switch
+                    v-model="form.is_active"
+                    active-text="启用"
+                    inactive-text="停用"
+                    :active-value="true"
+                    :inactive-value="false"
+                />
+            </el-form-item>
+
+            <!-- 排序权重 -->
+            <el-form-item label="排序权重">
+                <el-input-number
+                    v-model="form.sort_order"
+                    :min="0"
+                    :max="9999"
+                    controls-position="right"
+                    style="width: 100%"
+                />
+            </el-form-item>
+
             <!-- 开始日期 -->
             <el-form-item label="开始日期">
                 <el-date-picker
@@ -83,11 +105,18 @@
 import { ElMessage } from 'element-plus';
 import type { FormInstance } from 'element-plus';
 import { uploadFileAPI } from '@/api/uploads';
-import { createCarouselsAPI, type Carousel } from '@/api/carousels';
+import {
+    createCarouselsAPI,
+    updateCarouselsAPI,
+    type Carousel,
+} from '@/api/carousels';
 
 const props = defineProps<{
-    articleId: number;
-    articleTitle: string;
+    articleId?: number; // 新增时需要
+    articleTitle?: string; // 新增时默认标题
+    isEdit?: boolean;
+    carouselId?: number; // 编辑时必需
+    initialData?: Carousel; // 初始数据（用于编辑）
 }>();
 
 // 成功添加后通知父组件
@@ -105,10 +134,12 @@ const submitting = ref(false); // 提交状态
 
 // 表单数据对象
 const form = reactive({
-    cover_image: '',
-    title: props.articleTitle, // 默认使用文章标题
-    start_play_date: '',
-    end_play_date: '',
+    cover_image: props.initialData?.cover_image || '',
+    title: props.initialData?.title || props.articleTitle || '',
+    start_play_date: props.initialData?.start_play_date || '',
+    end_play_date: props.initialData?.end_play_date || '',
+    is_active: props.initialData?.is_active ?? true,
+    sort_order: props.initialData?.sort_order ?? 0,
 });
 
 // 表单校验规则
@@ -159,26 +190,41 @@ const handleFileChange = async (event: Event) => {
 
 // 提交表单
 const submit = async () => {
-    // 手动触发表单校验
     await formRef.value?.validate((valid) => {
         if (!valid) return;
     });
 
     submitting.value = true;
     try {
-        const payload: Carousel = {
-            article_id: props.articleId,
+        const payload: Partial<Carousel> = {
             cover_image: form.cover_image,
             title: form.title.trim(),
-            sort_order: 0,
-            is_active: true,
             start_play_date: form.start_play_date || null,
             end_play_date: form.end_play_date || null,
+            is_active: form.is_active,
+            sort_order: form.sort_order,
         };
 
-        await createCarouselsAPI(payload);
-        ElMessage.success('轮播图添加成功');
-        emit('success'); // 通知父组件刷新列表
+        if (props.isEdit && props.carouselId) {
+            // 编辑模式
+            await updateCarouselsAPI(props.carouselId, payload);
+            ElMessage.success('轮播图更新成功');
+        } else {
+            // 新增模式
+            if (!props.articleId) {
+                ElMessage.error('缺少关联文章ID');
+                return;
+            }
+            await createCarouselsAPI({
+                ...payload,
+                article_id: props.articleId,
+                sort_order: 0,
+                is_active: true,
+            } as Carousel);
+            ElMessage.success('轮播图添加成功');
+        }
+
+        emit('success');
         visible.value = false;
     } catch (error: any) {
         const msg = error?.response?.data?.error || '操作失败';
@@ -190,10 +236,11 @@ const submit = async () => {
 
 // 重置表单
 const resetForm = () => {
-    form.cover_image = '';
-    form.title = props.articleTitle;
-    form.start_play_date = '';
-    form.end_play_date = '';
+    // 重置为初始状态
+    form.cover_image = props.initialData?.cover_image || '';
+    form.title = props.initialData?.title || props.articleTitle || '';
+    form.start_play_date = props.initialData?.start_play_date || '';
+    form.end_play_date = props.initialData?.end_play_date || '';
     if (formRef.value) formRef.value.clearValidate();
 };
 </script>

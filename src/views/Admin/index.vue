@@ -45,11 +45,14 @@
                     <el-menu-item index="/admin/articleList"
                         >文章管理</el-menu-item
                     >
-                    <el-menu-item index="/admin/sensitiveWordList"
-                        >敏感词管理</el-menu-item
-                    >
                     <el-menu-item index="/admin/reviewArticle"
                         >文章审核</el-menu-item
+                    >
+                    <el-menu-item index="/admin/carouselList"
+                        >轮播图管理</el-menu-item
+                    >
+                    <el-menu-item index="/admin/sensitiveWordList"
+                        >敏感词管理</el-menu-item
                     >
                     <el-menu-item index="/admin/reviewRecords"
                         >审核记录</el-menu-item
