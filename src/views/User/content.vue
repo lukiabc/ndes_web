@@ -1,9 +1,5 @@
 <template>
     <div class="content-management">
-        <div class="header">
-            <h2>我的文章</h2>
-        </div>
-
         <!-- 筛选区域 -->
         <div class="filters">
             <el-select
@@ -17,7 +13,7 @@
                     :key="status"
                     :label="status"
                     :value="status"
-                ></el-option>
+                />
             </el-select>
 
             <el-input
@@ -25,19 +21,12 @@
                 placeholder="搜索标题"
                 style="width: 240px; margin-left: 16px"
                 clearable
-                @keyup.enter="handleSearch"
+                @keyup.enter.stop
             >
                 <template #prefix>
                     <el-icon><Search /></el-icon>
                 </template>
             </el-input>
-
-            <el-button style="margin-left: 12px" @click="handleSearch"
-                >搜索</el-button
-            >
-            <el-button style="margin-left: 8px" @click="resetFilters"
-                >重置</el-button
-            >
         </div>
 
         <!-- 加载中 -->
@@ -139,9 +128,9 @@ import { debounce } from 'lodash-es';
 // Stores
 import { useUserStore } from '@/stores/userStore';
 
-// APIs
+// APIs —— ✅ 导入新 API
 import {
-    getArticlesByUserAPI,
+    getArticlesByUserAndStatusAPI,
     deleteArticleAPI,
     type ArticleItem,
 } from '@/api/article';
@@ -159,7 +148,7 @@ const formatDate = (dateStr?: string): string => {
     });
 };
 
-// 状态
+// 状态映射
 const statusTypeMap = {
     草稿: 'info',
     待审: 'warning',
@@ -169,41 +158,36 @@ const statusTypeMap = {
     拒绝: 'danger',
 } as const;
 
-// 所有文章状态选项
 const statusOptions = Object.keys(statusTypeMap);
 
-// 获取标签类型
 const getStatusType = (
     status: string
 ): 'success' | 'warning' | 'info' | 'danger' | '' => {
     return statusTypeMap[status as keyof typeof statusTypeMap] || 'info';
 };
 
-// Router
+// Router & User
 const router = useRouter();
-
-// User Store
 const userStore = useUserStore();
 const userId = computed(() => userStore.userInfo.result.user_id);
 
-// 状态
+// 响应式状态
 const loading = ref(false);
 const articleList = ref<ArticleItem[]>([]);
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = 10;
 
-// 筛选条件
 const filterStatus = ref<string | undefined>(undefined);
 const searchTitle = ref('');
 
-// 截取文章内容摘要（去除 HTML 标签）
+// 截取摘要
 const getExcerpt = (content: string) => {
     const clean = content.replace(/<[^>]+>/g, '');
     return clean.length > 200 ? clean.slice(0, 200) : clean;
 };
 
-// 获取文章列表
+// 获取文章列表（核心）
 const fetchArticles = async (page: number = 1) => {
     if (!userId.value) {
         ElMessage.warning('用户信息异常，请重新登录');
@@ -212,31 +196,26 @@ const fetchArticles = async (page: number = 1) => {
 
     loading.value = true;
     try {
-        const res = await getArticlesByUserAPI(
+        // ✅ 调用新 API，状态交给后端
+        const res = await getArticlesByUserAndStatusAPI(
             Number(userId.value),
+            filterStatus.value, // 可为 undefined（查全部）
             page,
             pageSize
         );
 
-        let filtered = res.data.list;
+        let list = res.data.list;
 
-        // 前端过滤状态（如果后端支持，建议移至 API）
-        if (filterStatus.value) {
-            filtered = filtered.filter(
-                (item) => item.status === filterStatus.value
-            );
-        }
-
-        // 前端过滤标题关键词
+        // 仅对标题做前端模糊搜索（因后端未支持 title 参数）
         if (searchTitle.value.trim()) {
             const keyword = searchTitle.value.trim().toLowerCase();
-            filtered = filtered.filter((item) =>
+            list = list.filter((item) =>
                 item.title.toLowerCase().includes(keyword)
             );
         }
 
-        articleList.value = filtered;
-        total.value = res.data.total;
+        articleList.value = list;
+        total.value = res.data.total; // 后端返回的是当前状态下的总数
         currentPage.value = page;
     } catch (error) {
         console.error('加载文章失败:', error);
@@ -256,27 +235,10 @@ const debouncedSearch = debounce(() => {
     fetchArticles(1);
 }, 300);
 
-// 监听搜索输入（自动触发防抖）
-watch(searchTitle, () => {
+// 监听两个筛选条件变化
+watch([filterStatus, searchTitle], () => {
     debouncedSearch();
 });
-
-// 手动搜索（Enter / 按钮）
-const handleSearch = () => {
-    debouncedSearch.cancel();
-    if (currentPage.value !== 1) {
-        currentPage.value = 1;
-    }
-    fetchArticles(1);
-};
-
-// 重置筛选
-const resetFilters = () => {
-    filterStatus.value = undefined;
-    searchTitle.value = '';
-    debouncedSearch.cancel();
-    fetchArticles(1);
-};
 
 // 分页切换
 const handlePageChange = (page: number) => {

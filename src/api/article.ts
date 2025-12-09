@@ -86,6 +86,24 @@ export const searchPendingArticlesAPI = (
     });
 };
 
+// 根据用户 ID 和状态查询文章列表
+export const getArticlesByUserAndStatusAPI = (
+    userId: number,
+    status?: string,
+    page: number = 1,
+    pageSize: number = 10
+) => {
+    return httpInstance<PaginatedResponse<ArticleItem>>({
+        url: `/article/user/${userId}/status`,
+        method: 'GET',
+        params: {
+            status,
+            page,
+            pageSize,
+        },
+    });
+};
+
 // 根据用户 ID ,标题模糊查询文章
 export const searchArticlesByUserAPI = (
     userId: number,
