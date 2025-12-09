@@ -105,6 +105,11 @@ const router = createRouter({
                     name: 'content',
                     component: () => import('@/views/User/content.vue'),
                 },
+                {
+                    path: 'draft',
+                    name: 'draft',
+                    component: () => import('@/views/User/draft.vue'),
+                },
             ],
         },
         {

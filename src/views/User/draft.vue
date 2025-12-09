@@ -1,25 +1,10 @@
 <template>
-    <div class="content-management">
-        <!-- 筛选区域 -->
+    <div class="draft-box">
         <div class="filters">
-            <el-select
-                v-model="filterStatus"
-                placeholder="全部状态"
-                clearable
-                style="width: 120px"
-            >
-                <el-option
-                    v-for="status in statusOptions"
-                    :key="status"
-                    :label="status"
-                    :value="status"
-                />
-            </el-select>
-
             <el-input
                 v-model="searchTitle"
-                placeholder="搜索标题"
-                style="width: 240px; margin-left: 16px"
+                placeholder="搜索草稿标题"
+                style="width: 240px"
                 clearable
                 @keyup.enter.stop
             >
@@ -32,16 +17,16 @@
         <!-- 加载中 -->
         <el-skeleton v-if="loading" :rows="5" animated />
 
-        <!-- 文章列表 -->
-        <div v-else-if="articleList.length > 0" class="article-list">
+        <!-- 草稿列表 -->
+        <div v-else-if="draftList.length > 0" class="draft-list">
             <el-card
-                v-for="article in articleList"
+                v-for="article in draftList"
                 :key="article.article_id"
-                class="article-item"
+                class="draft-item"
                 shadow="hover"
             >
                 <template #header>
-                    <div class="article-header">
+                    <div class="draft-header">
                         <router-link
                             :to="`/article/${article.article_id}`"
                             target="_blank"
@@ -49,30 +34,20 @@
                         >
                             {{ article.title }}
                         </router-link>
-                        <el-tag
-                            :type="getStatusType(article.status)"
-                            size="small"
-                        >
-                            {{ article.status }}
-                        </el-tag>
+                        <el-tag type="info" size="small">草稿</el-tag>
                     </div>
                 </template>
 
-                <div class="article-body">
+                <div class="draft-body">
                     <p class="excerpt">{{ getExcerpt(article.content) }}...</p>
 
                     <div class="meta">
-                        <span>
-                            分类：{{
+                        <span
+                            >分类：{{
                                 article.Category?.category_name || '未分类'
-                            }}
-                        </span>
+                            }}</span
+                        >
                         <span>来源：{{ article.source }}</span>
-                        <span>
-                            发布时间：{{
-                                formatDate(article.publish_date) || '—'
-                            }}
-                        </span>
                     </div>
 
                     <div class="actions">
@@ -81,7 +56,7 @@
                             type="primary"
                             @click="editArticle(article.article_id)"
                         >
-                            编辑
+                            继续编辑
                         </el-button>
                         <el-button
                             size="small"
@@ -90,20 +65,13 @@
                         >
                             删除
                         </el-button>
-                        <el-button
-                            v-if="article.status === '已发布'"
-                            size="small"
-                            @click="previewArticle(article.article_id)"
-                        >
-                            预览
-                        </el-button>
                     </div>
                 </div>
             </el-card>
         </div>
 
         <!-- 空状态 -->
-        <el-empty v-else description="暂无文章，快去写一篇吧！" />
+        <el-empty v-else description="暂无草稿，快去写一篇吧！" />
 
         <!-- 分页 -->
         <el-pagination
@@ -129,67 +97,32 @@ import { debounce } from 'lodash-es';
 // Stores
 import { useUserStore } from '@/stores/userStore';
 
-// APIs —— ✅ 导入新 API
+// APIs
 import {
-    getArticlesByUserAndStatusAPI,
+    searchArticlesByUserAPI,
     deleteArticleAPI,
     type ArticleItem,
 } from '@/api/article';
 
-// 工具函数：格式化日期
-const formatDate = (dateStr?: string): string => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
-
-// 状态映射
-const statusTypeMap = {
-    草稿: 'info',
-    待审: 'warning',
-    待发布: 'info',
-    已发布: 'success',
-    退回修订: 'danger',
-    拒绝: 'danger',
-} as const;
-
-const statusOptions = Object.keys(statusTypeMap);
-
-const getStatusType = (
-    status: string
-): 'success' | 'warning' | 'info' | 'danger' | '' => {
-    return statusTypeMap[status as keyof typeof statusTypeMap] || 'info';
-};
-
-// Router & User
-const router = useRouter();
-const userStore = useUserStore();
-const userId = computed(() => userStore.userInfo.result.user_id);
-
-// 响应式状态
-const loading = ref(false);
-const articleList = ref<ArticleItem[]>([]);
-const total = ref(0);
-const currentPage = ref(1);
-const pageSize = 10;
-
-const filterStatus = ref<string | undefined>(undefined);
-const searchTitle = ref('');
-
-// 截取摘要
 const getExcerpt = (content: string) => {
     const clean = content.replace(/<[^>]+>/g, '');
     return clean.length > 200 ? clean.slice(0, 200) : clean;
 };
 
-// 获取文章列表（核心）
-const fetchArticles = async (page: number = 1) => {
+// 用户信息
+const userStore = useUserStore();
+const userId = computed(() => userStore.userInfo.result.user_id);
+
+// 响应式数据
+const loading = ref(false);
+const draftList = ref<ArticleItem[]>([]);
+const total = ref(0);
+const currentPage = ref(1);
+const pageSize = 10;
+const searchTitle = ref('');
+
+// 获取草稿列表
+const fetchDrafts = async (page: number = 1) => {
     if (!userId.value) {
         ElMessage.warning('用户信息异常，请重新登录');
         return;
@@ -197,70 +130,58 @@ const fetchArticles = async (page: number = 1) => {
 
     loading.value = true;
     try {
-        // ✅ 调用新 API，状态交给后端
-        const res = await getArticlesByUserAndStatusAPI(
+        const res = await searchArticlesByUserAPI(
             Number(userId.value),
-            filterStatus.value, // 可为 undefined（查全部）
+            searchTitle.value.trim() || undefined,
+            '草稿',
             page,
             pageSize
         );
 
-        let list = res.data.list;
-
-        // 仅对标题做前端模糊搜索（因后端未支持 title 参数）
-        if (searchTitle.value.trim()) {
-            const keyword = searchTitle.value.trim().toLowerCase();
-            list = list.filter((item) =>
-                item.title.toLowerCase().includes(keyword)
-            );
-        }
-
-        articleList.value = list;
-        total.value = res.data.total; // 后端返回的是当前状态下的总数
+        draftList.value = res.data.list;
+        total.value = res.data.total;
         currentPage.value = page;
     } catch (error) {
-        console.error('加载文章失败:', error);
-        ElMessage.error('加载文章失败');
-        articleList.value = [];
+        console.error('加载草稿失败:', error);
+        ElMessage.error('加载草稿失败');
+        draftList.value = [];
         total.value = 0;
     } finally {
         loading.value = false;
     }
 };
 
-// 防抖搜索（300ms）
+// 防抖搜索
 const debouncedSearch = debounce(() => {
     if (currentPage.value !== 1) {
         currentPage.value = 1;
     }
-    fetchArticles(1);
+    fetchDrafts(1);
 }, 300);
 
-// 监听两个筛选条件变化
-watch([filterStatus, searchTitle], () => {
+// 监听搜索词变化
+watch(searchTitle, () => {
     debouncedSearch();
 });
 
-// 分页切换
+// 分页
 const handlePageChange = (page: number) => {
     currentPage.value = page;
-    fetchArticles(page);
+    fetchDrafts(page);
 };
 
-// 操作方法
+// 操作
+const router = useRouter();
+
 const editArticle = (id: number) => {
     const url = router.resolve(`/article/edit/${id}`).href;
     window.open(url, '_blank');
 };
 
-const previewArticle = (id: number) => {
-    window.open(`/article/${id}`, '_blank');
-};
-
 const deleteArticle = async (id: number) => {
     try {
         await ElMessageBox.confirm(
-            '确定要删除这篇文章？此操作不可恢复。',
+            '确定要删除这篇草稿？此操作不可恢复。',
             '警告',
             {
                 confirmButtonText: '确定',
@@ -271,7 +192,7 @@ const deleteArticle = async (id: number) => {
 
         await deleteArticleAPI(id);
         ElMessage.success('删除成功');
-        fetchArticles(currentPage.value);
+        fetchDrafts(currentPage.value);
     } catch (error) {
         if (error !== 'cancel') {
             ElMessage.error('删除失败');
@@ -279,41 +200,25 @@ const deleteArticle = async (id: number) => {
     }
 };
 
-// 初始化
 onMounted(() => {
-    fetchArticles(1);
+    fetchDrafts(1);
 });
 </script>
 
 <style lang="scss" scoped>
-.content-management {
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-
-        h2 {
-            margin: 0;
-            color: #333;
-            font-size: 20px;
-        }
-    }
-
+.draft-box {
     .filters {
         margin-bottom: 20px;
-        display: flex;
-        align-items: center;
     }
 
-    .article-list {
+    .draft-list {
         display: flex;
         flex-direction: column;
         gap: 16px;
     }
 
-    .article-item {
-        .article-header {
+    .draft-item {
+        .draft-header {
             display: flex;
             justify-content: space-between;
             align-items: center;

@@ -104,10 +104,11 @@ export const getArticlesByUserAndStatusAPI = (
     });
 };
 
-// 根据用户 ID ,标题模糊查询文章
+// 根据用户 ID ,状态,标题模糊查询文章
 export const searchArticlesByUserAPI = (
     userId: number,
-    title: string = '',
+    title?: string,
+    status?: string,
     page: number = 1,
     pageSize: number = 10
 ) => {
@@ -118,6 +119,7 @@ export const searchArticlesByUserAPI = (
             title,
             page,
             pageSize,
+            status,
         },
     });
 };
