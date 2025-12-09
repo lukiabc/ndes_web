@@ -14,16 +14,14 @@
                         <el-avatar
                             class="header-avatar"
                             :src="userStore.userInfo.result.avatar_url"
-                        >
-                        </el-avatar>
+                        />
                     </div>
                     <template #dropdown>
                         <el-dropdown-menu class="user-dropdown-menu">
                             <div class="user-info">
                                 <el-avatar
                                     :src="userStore.userInfo.result.avatar_url"
-                                >
-                                </el-avatar>
+                                />
                                 <div class="user-name">
                                     {{ userStore.userInfo.result.username }}
                                 </div>
@@ -35,38 +33,6 @@
                             >
                                 <el-icon><User /></el-icon>
                                 <span>个人中心</span>
-                            </el-dropdown-item>
-                            <el-dropdown-item
-                                command="content"
-                                class="menu-item"
-                            >
-                                <el-icon><Document /></el-icon>
-                                <span>内容管理</span>
-                            </el-dropdown-item>
-                            <el-dropdown-item command="draft" class="menu-item">
-                                <el-icon><Edit /></el-icon>
-                                <span>草稿箱</span>
-                            </el-dropdown-item>
-                            <el-dropdown-item
-                                command="favorites"
-                                class="menu-item"
-                            >
-                                <el-icon><Star /></el-icon>
-                                <span>我的收藏</span>
-                            </el-dropdown-item>
-                            <el-dropdown-item
-                                command="history"
-                                class="menu-item"
-                            >
-                                <el-icon><Clock /></el-icon>
-                                <span>浏览历史</span>
-                            </el-dropdown-item>
-                            <el-dropdown-item
-                                command="version"
-                                class="menu-item"
-                            >
-                                <el-icon><Refresh /></el-icon>
-                                <span>版本回溯</span>
                             </el-dropdown-item>
                             <el-divider />
                             <el-dropdown-item
@@ -86,9 +52,41 @@
         </el-header>
 
         <el-container>
+            <el-aside width="180px">
+                <el-menu
+                    active-text-color="#409EFF"
+                    background-color="#ffffff"
+                    text-color="#333"
+                    :default-active="activeMenu"
+                    style="border: none; height: 100%"
+                    router
+                >
+                    <el-menu-item index="/user/content">
+                        <el-icon><Document /></el-icon>
+                        <span>内容管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/user/draft">
+                        <el-icon><Edit /></el-icon>
+                        <span>草稿箱</span>
+                    </el-menu-item>
+                    <el-menu-item index="/user/favorites">
+                        <el-icon><Star /></el-icon>
+                        <span>我的收藏</span>
+                    </el-menu-item>
+                    <el-menu-item index="/user/history">
+                        <el-icon><Clock /></el-icon>
+                        <span>浏览历史</span>
+                    </el-menu-item>
+                    <el-menu-item index="/user/version">
+                        <el-icon><Refresh /></el-icon>
+                        <span>版本回溯</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+
             <el-main>
                 <div class="view-container">
-                    <router-view></router-view>
+                    <router-view />
                 </div>
             </el-main>
         </el-container>
@@ -96,7 +94,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import {
     User,
     Document,
@@ -110,7 +108,12 @@ import {
 import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
+
+const activeMenu = computed(() => {
+    return route.path;
+});
 
 const handleCommand = (command: string) => {
     if (command === 'logout') {
@@ -137,7 +140,7 @@ const openArticleCreate = () => {
 
 .el-header {
     background-color: #ffffff;
-    color: #000000;
+    color: #333;
     font-size: 20px;
     height: 60px;
     line-height: 60px;
@@ -145,23 +148,31 @@ const openArticleCreate = () => {
     justify-content: space-between;
     align-items: center;
     padding-left: 0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    z-index: 100;
 
     > div {
         display: flex;
         align-items: center;
     }
+
     .title {
-        margin-left: 20px;
+        margin-left: 24px;
+        font-weight: 600;
+        color: #a30800;
     }
 }
 
 .header-avatar {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     cursor: pointer;
+    transition: transform 0.2s ease;
+    &:hover {
+        transform: scale(1.05);
+    }
 }
 
 .avatar-wrapper {
@@ -171,9 +182,6 @@ const openArticleCreate = () => {
     outline: none;
 }
 
-.el-divider {
-    margin: 6px 0;
-}
 .user-info {
     display: flex;
     align-items: center;
@@ -189,51 +197,85 @@ const openArticleCreate = () => {
 .el-container {
     flex: 1;
     display: flex;
+    min-height: 0;
 }
 
 .el-aside {
-    width: 150px !important;
-    background-color: #a30800;
+    width: 200px !important;
+    background-color: #fff;
+    border-right: 1px solid #eee;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.03);
 }
 
 .el-menu {
-    border: none;
+    border: none !important;
     height: 100%;
-    background-color: transparent !important;
+    background-color: #fff !important;
+    padding-top: 12px;
+}
+
+:deep(.el-menu-item) {
+    height: 48px;
+    line-height: 48px;
+    margin: 4px 0;
+    padding-left: 24px !important;
+    border-radius: 0 20px 20px 0 !important;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #f5f7fa !important;
+    }
+
+    &.is-active {
+        background-color: #eef5ff !important;
+        color: #409eff !important;
+        font-weight: 600;
+    }
+
+    .el-icon {
+        margin-right: 10px;
+        width: 18px;
+        text-align: center;
+    }
 }
 
 .el-main {
-    overflow: hidden;
+    background-color: #f9fafc;
+    padding: 20px;
+    overflow-y: auto;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-right: 20px;
+    gap: 24px;
+    margin-right: 24px;
 }
 
 .icon-title {
     display: flex;
     align-items: center;
-    height: 35px;
-    gap: 5px;
+    height: 36px;
+    gap: 6px;
     color: #ffffff;
     cursor: pointer;
     font-size: 14px;
     background-color: #a30800;
-    padding: 8px 10px;
+    padding: 0 16px;
     border-radius: 20px;
     outline: none;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(163, 8, 0, 0.2);
 
     &:hover {
         background-color: #8b0600;
-        transform: scale(1.02);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(163, 8, 0, 0.3);
     }
-}
 
-.el-icon {
-    font-size: 14px;
+    .el-icon {
+        font-size: 16px;
+    }
 }
 </style>
 
@@ -241,6 +283,9 @@ const openArticleCreate = () => {
 .user-dropdown-menu {
     min-width: 200px !important;
     padding: 8px 0 !important;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
     .el-divider {
         margin: 6px 0 !important;
@@ -252,8 +297,29 @@ const openArticleCreate = () => {
         align-items: center;
         gap: 10px;
         font-size: 14px;
-        color: #333;
+        color: #444;
         white-space: nowrap;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: #f5f7fa;
+            color: #409eff;
+        }
+
+        .el-icon {
+            font-size: 16px;
+            color: #666;
+        }
+    }
+}
+
+.user-info {
+    padding: 12px 16px !important;
+    background-color: #f9fafc;
+    .user-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
     }
 }
 </style>

@@ -99,7 +99,13 @@ const router = createRouter({
             path: '/user',
             name: 'user',
             component: () => import('@/views/User/userIndex.vue'),
-            children: [],
+            children: [
+                {
+                    path: 'content',
+                    name: 'content',
+                    component: () => import('@/views/User/content.vue'),
+                },
+            ],
         },
         {
             path: '/articleDetail/:id',
