@@ -1,5 +1,6 @@
 <template>
     <div class="article-list">
+        <!-- 搜索表单 inline 布局，支持关键词、分类、状态筛选 -->
         <el-form :inline="true" class="search-form" @submit.prevent>
             <el-form-item label="关键词">
                 <el-input
@@ -46,6 +47,7 @@
             </el-form-item>
         </el-form>
 
+        <!-- 文章表格 -->
         <el-table
             :data="articles"
             style="width: 100%"
@@ -53,12 +55,18 @@
             :loading="loading"
             empty-text="暂无文章"
         >
-            <el-table-column prop="article_id" label="ID" width="80" sortable />
+            <el-table-column
+                prop="article_id"
+                label="文章ID"
+                width="100"
+                sortable
+            />
 
             <el-table-column prop="title" label="标题" min-width="150" sortable>
                 <template #default="scope">
+                    <!-- 跳转详情 -->
                     <el-link type="primary" @click="handleView(scope.row)">
-                        <!-- 渲染高亮标题 -->
+                        <!-- 标题关键词高亮 -->
                         <span
                             v-html="
                                 highlightText(
@@ -73,6 +81,7 @@
 
             <el-table-column label="内容摘要" min-width="200" sortable>
                 <template #default="scope">
+                    <!-- 内容摘要关键词高亮 -->
                     <span
                         v-html="
                             highlightText(
@@ -117,6 +126,31 @@
                     </el-tag>
                 </template>
             </el-table-column>
+
+            <!-- 操作列 -->
+            <el-table-column label="操作" min-width="100">
+                <template #default="scope">
+                    <el-button
+                        size="small"
+                        :type="getCarouselButtonClass(scope.row)"
+                        @click="handleCarouselAction(scope.row)"
+                        :disabled="
+                            !scope.row.article_id ||
+                            scope.row.status !== '已发布'
+                        "
+                    >
+                        {{
+                            !scope.row.inCarousel
+                                ? '加入轮播图'
+                                : scope.row.isCarouselActiveNow
+                                ? '已在轮播'
+                                : getCarouselButtonTextByTime(
+                                      scope.row.carouselItem
+                                  )
+                        }}
+                    </el-button>
+                </template>
+            </el-table-column>
         </el-table>
 
         <!-- 分页 -->
@@ -133,11 +167,27 @@
             @current-change="loadArticles"
         />
     </div>
+
+    <!-- 轮播图详情弹窗 -->
+    <CarouselDetailDialog
+        v-model="dialogVisible"
+        :carousel-item="selectedCarouselItem"
+        @close="selectedCarouselItem = null"
+    />
+
+    <!-- 加入轮播图弹窗 -->
+    <AddToCarouselDialog
+        v-model:visible="addToCarouselDialogVisible"
+        :article-id="selectedArticleForCarousel?.article_id || 0"
+        :article-title="selectedArticleForCarousel?.title || ''"
+        @success="onAddToCarouselSuccess"
+    />
 </template>
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
+
 import {
     getArticleListAPI,
     getArticlesByCategoryAPI,
@@ -145,19 +195,22 @@ import {
     getArticlesByStatus,
     getStatusAPI,
     type ArticleItem,
-    type SearchResponse,
 } from '@/api/article';
 import { getCategoryListAPI } from '@/api/category';
-const router = useRouter();
+import { getCarouselsAPI } from '@/api/carousels';
 
-// 分类数据定义
+// 组件导入
+import AddToCarouselDialog from '@/views/Admin/components/AddToCarouselDialog.vue';
+import CarouselDetailDialog from '@/views/Admin/components/CarouselDetailDialog.vue';
+
+// 分类结构
 interface Category {
     category_id: string;
     category_name: string;
     parent_id: number | null;
 }
 
-// 分页响应类型
+// 分页响应结构
 interface PaginatedResponse<T> {
     total: number;
     page: number;
@@ -165,82 +218,63 @@ interface PaginatedResponse<T> {
     list: T[];
 }
 
-// 状态选项
+// 文章项扩展，包含轮播图信息
+interface ArticleItemWithCarousel extends ArticleItem {
+    inCarousel?: boolean;
+    carouselItem?: CarouselItem | null;
+    isCarouselActiveNow?: boolean;
+}
+
+// 轮播图项结构
+interface CarouselItem {
+    id?: number;
+    article_id: number;
+    title: string;
+    cover_image: string;
+    sort_order: number;
+    is_active: boolean;
+    start_play_date?: string;
+    end_play_date?: string;
+    created_at: string;
+}
+
+const router = useRouter();
+
+// 状态选项列表
 const statusOptions = ref<{ label: string; value: string }[]>([]);
-
-const getStatus = async () => {
-    try {
-        const res = await getStatusAPI();
-        // 假设 res.data 是上面那样的数组
-        statusOptions.value = res.data.map((item: any) => ({
-            label: item.status,
-            value: item.status,
-        }));
-    } catch (error) {
-        ElMessage.error('加载状态列表失败');
-        // 设置 fallback（防止下拉框为空）
-        statusOptions.value = [
-            { label: '草稿', value: '草稿' },
-            { label: '待审', value: '待审' },
-            { label: '已发布', value: '已发布' },
-            { label: '退回修订', value: '退回修订' },
-            { label: '拒绝', value: '拒绝' },
-        ];
-    }
-};
-
-// 分类列表
-const categories = ref<{ id: string; name: string }[]>([]);
-
-// 搜索与筛选条件
-const searchForm = reactive({
-    keyword: '',
-    categoryId: undefined as number | undefined, // 分类
-    status: undefined as string | undefined, // 状态
-});
-
-const articles = ref<ArticleItem[]>([]); // 文章列表
+const categories = ref<{ id: string; name: string }[]>([]); // 分类列表
+const articles = ref<ArticleItemWithCarousel[]>([]); // 文章列表
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const loading = ref(false);
 
-// 加载分类列表
-const loadCategories = async () => {
-    try {
-        const res = await getCategoryListAPI();
-        const allCategories = res.data as Category[];
+// 轮播图项映射表
+const activeCarouselsMap = ref<Map<number, CarouselItem>>(new Map());
+const dialogVisible = ref(false); // 轮播图详情弹窗控制
+// 当前选中的轮播图项，用于详情弹窗
+const selectedCarouselItem = ref<CarouselItem | null>(null);
 
-        // 提取二级分类(parent_id 不为 null)
-        categories.value = allCategories
-            .filter((cat) => cat.parent_id !== null)
-            .map((cat) => ({
-                id: cat.category_id,
-                name: cat.category_name,
-            }));
-    } catch (error) {
-        ElMessage.error('加载分类列表失败');
-    }
+// 加入轮播图弹窗控制
+const addToCarouselDialogVisible = ref(false);
+// 当前选中的文章项，用于加入轮播图
+const selectedArticleForCarousel = ref<ArticleItemWithCarousel | null>(null);
+
+// 搜索表单响应式数据
+const searchForm = reactive({
+    keyword: '',
+    categoryId: undefined as number | undefined,
+    status: undefined as string | undefined,
+});
+
+// 解析日期字符串为本地时间
+const parseDateAsLocal = (dateStr?: string): Date | null => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
 };
 
-// 防抖搜索
-let searchTimer: ReturnType<typeof setTimeout>;
-const debouncedSearch = (value: string) => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-        if (value.trim() || !searchForm.categoryId) {
-            currentPage.value = 1; // 搜索时重置页码
-            loadArticles();
-        }
-    }, 500);
-};
-
-// 获取图片 URL 列表
-const getMediaUrls = (mediaList: ArticleItem['Media']) => {
-    return mediaList?.map((m) => m.media_url) || [];
-};
-
-// 状态标签颜色
+// 获取文章状态标签类型
 const statusTagType = (status: string) => {
     return (
         {
@@ -253,26 +287,25 @@ const statusTagType = (status: string) => {
     );
 };
 
-// 格式化日期
+//格式化日期 输出为 "YYYY-MM-DD HH:mm"
 const formatDate = (dateStr?: string) => {
     if (!dateStr) return '--';
     const date = new Date(dateStr);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
         2,
         '0'
-    )}-${String(date.getDate()).padStart(2, '0')}
-        ${String(date.getHours()).padStart(2, '0')}:${String(
-        date.getMinutes()
-    ).padStart(2, '0')}`;
+    )}-${String(date.getDate()).padStart(2, '0')} ${String(
+        date.getHours()
+    ).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 };
 
-// 获取摘要
+// 截取文章内容摘要
 const getExcerpt = (content: string) => {
     const clean = content.replace(/<[^>]+>/g, '');
     return clean.length > 60 ? clean.slice(0, 60) + '...' : clean;
 };
 
-// 高亮关键词（支持 HTML 渲染）
+// 高亮
 const highlightText = (text: string, keyword: string) => {
     if (!keyword.trim()) return text;
     const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -283,15 +316,185 @@ const highlightText = (text: string, keyword: string) => {
     );
 };
 
-// 加载数据
+// 判断轮播项当前是否实际生效
+const isCarouselActiveNow = (item: CarouselItem): boolean => {
+    if (!item.is_active) return false;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 本地日期（忽略时分秒）
+
+    const start = item.start_play_date
+        ? parseDateAsLocal(item.start_play_date)
+        : null;
+    const end = item.end_play_date
+        ? parseDateAsLocal(item.end_play_date)
+        : null;
+
+    if (start && today < start) return false;
+    if (end && today > end) return false;
+
+    return true;
+};
+
+// 根据文章轮播状态返回按钮样式类型
+const getCarouselButtonClass = (article: ArticleItemWithCarousel): string => {
+    if (!article.inCarousel) {
+        return 'primary'; // “加入轮播图”
+    }
+    const item = article.carouselItem;
+    if (!item) {
+        return 'success'; // 兜底
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const start = item.start_play_date
+        ? parseDateAsLocal(item.start_play_date)
+        : null;
+    const end = item.end_play_date
+        ? parseDateAsLocal(item.end_play_date)
+        : null;
+
+    if (!item.is_active) {
+        return 'danger'; // 已停用
+    }
+
+    if (start && today < start) {
+        return 'warning'; // 未开始
+    }
+
+    if (end && today > end) {
+        return 'info'; // 已过期
+    }
+
+    return 'success'; // 已在轮播
+};
+
+// 根据轮播项状态返回按钮文字
+const getCarouselButtonTextByTime = (item: CarouselItem | null): string => {
+    if (!item) return '已在轮播';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const start = item.start_play_date
+        ? parseDateAsLocal(item.start_play_date)
+        : null;
+    const end = item.end_play_date
+        ? parseDateAsLocal(item.end_play_date)
+        : null;
+
+    if (!item.is_active) {
+        return '已停用';
+    }
+
+    if (start && today < start) {
+        return '未开始';
+    }
+
+    if (end && today > end) {
+        return '已过期';
+    }
+    return '已在轮播';
+};
+
+// 获取文章状态列表 用于搜索下拉筛选
+const getStatus = async () => {
+    try {
+        const res = await getStatusAPI();
+        statusOptions.value = res.data.map((item: any) => ({
+            label: item.status,
+            value: item.status,
+        }));
+    } catch (error) {
+        ElMessage.error('加载状态列表失败');
+        statusOptions.value = [
+            { label: '草稿', value: '草稿' },
+            { label: '待审', value: '待审' },
+            { label: '已发布', value: '已发布' },
+            { label: '退回修订', value: '退回修订' },
+            { label: '拒绝', value: '拒绝' },
+        ];
+    }
+};
+
+// 获取分类列表 用于搜索下拉筛选
+const loadCategories = async () => {
+    try {
+        const res = await getCategoryListAPI();
+        const allCategories = res.data as Category[];
+        categories.value = allCategories
+            .filter((cat) => cat.parent_id !== null)
+            .map((cat) => ({
+                id: cat.category_id,
+                name: cat.category_name,
+            }));
+    } catch (error) {
+        ElMessage.error('加载分类列表失败');
+    }
+};
+
+// 获取所有轮播图中的文章ID 用于标记文章是否在轮播图中
+const loadCarouselArticleIds = async () => {
+    try {
+        const res = await getCarouselsAPI();
+        const map = new Map<number, CarouselItem>();
+        (res.data.list || []).forEach((item: CarouselItem) => {
+            if (item.article_id) {
+                map.set(item.article_id, item);
+            }
+        });
+        activeCarouselsMap.value = map;
+        markArticlesWithCarousel(); // 更新文章的轮播状态
+    } catch (err) {
+        console.warn('加载轮播图状态失败，不影响主流程');
+    }
+};
+
+// 标记文章是否在轮播图中 根据 activeCarouselsMap 标记是否在轮播、是否生效
+const markArticlesWithCarousel = () => {
+    articles.value = [...articles.value].map((article) => {
+        const carouselItem = activeCarouselsMap.value.get(article.article_id);
+        if (carouselItem) {
+            return {
+                ...article,
+                inCarousel: true,
+                carouselItem,
+                isCarouselActiveNow: isCarouselActiveNow(carouselItem),
+            };
+        } else {
+            return {
+                ...article,
+                inCarousel: false,
+                carouselItem: null,
+                isCarouselActiveNow: false,
+            };
+        }
+    });
+};
+
+// 防抖搜索定时器
+let searchTimer: ReturnType<typeof setTimeout>;
+// 防抖搜索
+const debouncedSearch = (value: string) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        if (value.trim() || !searchForm.categoryId) {
+            currentPage.value = 1;
+            loadArticles();
+        }
+    }, 500);
+};
+
+// 加载文章列表
 const loadArticles = async () => {
     loading.value = true;
     try {
-        let res;
-        currentPage.value = Math.max(1, currentPage.value); // 防非法页码
-
+        currentPage.value = Math.max(1, currentPage.value);
         const keyword = searchForm.keyword.trim();
 
+        let res;
         if (keyword) {
             // 关键词搜索
             res = await searchArticlesAPI(
@@ -299,11 +502,11 @@ const loadArticles = async () => {
                 currentPage.value,
                 pageSize.value
             );
-            const data = res.data as SearchResponse;
+            const data = res.data as any;
             articles.value = data.list;
             total.value = data.total;
         } else if (searchForm.categoryId) {
-            // 按分类查询
+            // 分类搜索
             res = await getArticlesByCategoryAPI(
                 searchForm.categoryId,
                 currentPage.value,
@@ -313,7 +516,7 @@ const loadArticles = async () => {
             articles.value = data.list;
             total.value = data.total;
         } else if (searchForm.status) {
-            // 按状态查询
+            // 状态搜索
             res = await getArticlesByStatus(
                 searchForm.status,
                 currentPage.value,
@@ -323,12 +526,15 @@ const loadArticles = async () => {
             articles.value = data.list;
             total.value = data.total;
         } else {
-            //无筛选
+            // 全部文章
             res = await getArticleListAPI(currentPage.value, pageSize.value);
             const data = res.data as PaginatedResponse<ArticleItem>;
             articles.value = data.list;
             total.value = data.total;
         }
+
+        // 更新每篇文章的轮播状态
+        markArticlesWithCarousel();
     } catch (err) {
         ElMessage.error('获取文章失败，请稍后重试');
         articles.value = [];
@@ -338,20 +544,50 @@ const loadArticles = async () => {
     }
 };
 
-// 查看详情
+// 查看文章详情
 const handleView = (row: ArticleItem) => {
     router.push(`/articleDetail/${row.article_id}`);
 };
 
-// 监听分页变化
+// 处理轮播图操作
+const handleCarouselAction = (article: ArticleItemWithCarousel) => {
+    // 仅允许‘已发布’文章操作
+    if (article.status !== '已发布') {
+        ElMessage.warning('仅“已发布”文章可加入轮播图');
+        return;
+    }
+
+    if (article.inCarousel) {
+        // 已在轮播 → 打开详情弹窗
+        const item = activeCarouselsMap.value.get(article.article_id);
+        if (item) {
+            selectedCarouselItem.value = item;
+            dialogVisible.value = true;
+        } else {
+            ElMessage.warning('未找到对应的轮播图记录');
+        }
+    } else {
+        // 未加入 → 打开“加入轮播”弹窗
+        selectedArticleForCarousel.value = article;
+        addToCarouselDialogVisible.value = true;
+    }
+};
+
+// 加入轮播图成功后，重新加载轮播数据
+const onAddToCarouselSuccess = async () => {
+    await loadCarouselArticleIds();
+};
+
+// 监听分页参数变化，重新加载文章列表
 watch([currentPage, pageSize], () => {
     loadArticles();
 });
 
 onMounted(() => {
-    loadArticles(); // 加载文章列表
-    loadCategories(); // 加载分类列表
-    getStatus();
+    loadCarouselArticleIds(); // 初始化轮播图数据
+    loadArticles(); // 初始化文章列表
+    loadCategories(); // 初始化分类列表
+    getStatus(); // 初始化文章状态列表
 });
 </script>
 

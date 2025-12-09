@@ -30,6 +30,11 @@ export interface ArticleItem {
     }>;
 }
 
+// 用于轮播图的文章状态
+export interface ArticleItemWithCarousel extends ArticleItem {
+    inCarousel?: boolean;
+}
+
 // 分页响应类型
 interface PaginatedResponse<T> {
     total: number;

@@ -1,7 +1,7 @@
 // 轮播图
 import httpInstance from '@/utils/http';
 
-interface Carousel {
+export interface Carousel {
     article_id: number;
     cover_image: string;
     title: string;
