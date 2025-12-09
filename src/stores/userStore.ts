@@ -1,9 +1,12 @@
+// stores/userStore.ts
 import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 import { loginAPI } from '@/api/user';
 
 export const useUserStore = defineStore(
     'user',
     () => {
+        // 用户完整信息（包含 token）
         const userInfo = ref({
             code: 0,
             msg: '',
@@ -11,12 +14,25 @@ export const useUserStore = defineStore(
                 user_id: '',
                 username: '',
                 email: '',
-                role_id: '',
+                role_id: 0,
                 avatar_url: '',
                 token: '',
             },
         });
 
+        const isLogin = computed(() => {
+            return !!userInfo.value.result.token;
+        });
+
+        const isAdmin = computed(() => {
+            return isLogin.value && Number(userInfo.value.result.role_id) === 1;
+        });
+
+        const isUser = computed(() => {
+            return isLogin.value && Number(userInfo.value.result.role_id) === 2;
+        });
+
+        // 登录
         const getUserInfo = async ({
             username,
             password,
@@ -28,7 +44,7 @@ export const useUserStore = defineStore(
             userInfo.value = res.data.userInfo;
         };
 
-        // 清除用户信息
+        // 登出
         const clearUserInfo = () => {
             userInfo.value = {
                 code: 0,
@@ -37,7 +53,7 @@ export const useUserStore = defineStore(
                     user_id: '',
                     username: '',
                     email: '',
-                    role_id: '',
+                    role_id: 0,
                     avatar_url: '',
                     token: '',
                 },
@@ -46,11 +62,18 @@ export const useUserStore = defineStore(
 
         return {
             userInfo,
+            isLogin,
+            isAdmin,
+            isUser,
             getUserInfo,
             clearUserInfo,
         };
     },
     {
-        persist: true,
+        persist: {
+            // 可选：自定义存储 key 或 storage
+            key: 'user-store',
+            storage: localStorage,
+        },
     }
 );

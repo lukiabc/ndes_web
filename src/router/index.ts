@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+import { ElMessage } from 'element-plus';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,6 +45,7 @@ const router = createRouter({
             path: '/admin',
             name: 'admin',
             component: () => import('@/views/Admin/index.vue'),
+            redirect: '/admin/userList',
             children: [
                 {
                     path: 'userList',
@@ -116,6 +119,43 @@ const router = createRouter({
             props: true,
         },
     ],
+});
+
+router.beforeEach((to, from, next) => {
+    const userStore = useUserStore();
+
+    // 目标路由是登录页，直接进入对应首页
+    if (to.path === '/login' && userStore.isLogin) {
+        if (userStore.isAdmin) {
+            return next('/admin');
+        } else if (userStore.isUser) {
+            return next('/user');
+        }
+        return next('/');
+    }
+
+    //  目标路由是受保护的（/admin 或 /user）,需要登录
+    if (
+        (to.path.startsWith('/admin') || to.path.startsWith('/user')) &&
+        !userStore.isLogin
+    ) {
+        ElMessage.warning('请先登录');
+        return next('/login');
+    }
+
+    //  权限校验：防止普通用户进 admin，管理员进 user
+    if (to.path.startsWith('/admin') && !userStore.isAdmin) {
+        ElMessage.error('您没有管理员权限');
+        return next(from.path || '/');
+    }
+
+    if (to.path.startsWith('/user') && !userStore.isUser) {
+        ElMessage.error('您不是普通用户');
+        return next(from.path || '/');
+    }
+
+    // 其他情况放行
+    next();
 });
 
 export default router;
