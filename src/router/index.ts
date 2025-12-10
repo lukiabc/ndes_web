@@ -142,17 +142,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const userStore = useUserStore();
 
-    // 目标路由是登录页，直接进入对应首页
-    if (to.path === '/login' && userStore.isLogin) {
-        if (userStore.isAdmin) {
-            return next('/admin');
-        } else if (userStore.isUser) {
-            return next('/user');
-        }
-        return next('/');
+    // 允许任何人访问 /login
+    if (to.path === '/login') {
+        return next(); // 直接放行！
     }
 
-    //  目标路由是受保护的（/admin 或 /user）,需要登录
+    // 保护 /admin 和 /user 路由：未登录则跳转到登录页
     if (
         (to.path.startsWith('/admin') || to.path.startsWith('/user')) &&
         !userStore.isLogin
@@ -161,7 +156,7 @@ router.beforeEach((to, from, next) => {
         return next('/login');
     }
 
-    //  权限校验：防止普通用户进 admin，管理员进 user
+    // 权限校验：防止普通用户进 admin 管理员进 user
     if (to.path.startsWith('/admin') && !userStore.isAdmin) {
         ElMessage.error('您没有管理员权限');
         return next(from.path || '/');
@@ -172,7 +167,7 @@ router.beforeEach((to, from, next) => {
         return next(from.path || '/');
     }
 
-    // 其他情况放行
+    // 其他放行
     next();
 });
 
