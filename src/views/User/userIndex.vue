@@ -77,7 +77,7 @@
                         <el-icon><Clock /></el-icon>
                         <span>浏览历史</span>
                     </el-menu-item>
-                    <el-menu-item index="/user/version">
+                    <el-menu-item index="/user/ArticleVersionHistory">
                         <el-icon><Refresh /></el-icon>
                         <span>版本回溯</span>
                     </el-menu-item>

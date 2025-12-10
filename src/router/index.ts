@@ -98,6 +98,7 @@ const router = createRouter({
         {
             path: '/user',
             name: 'user',
+            redirect: '/user/content',
             component: () => import('@/views/User/userIndex.vue'),
             children: [
                 {
@@ -109,6 +110,12 @@ const router = createRouter({
                     path: 'draft',
                     name: 'draft',
                     component: () => import('@/views/User/draft.vue'),
+                },
+                {
+                    path: 'ArticleVersionHistory',
+                    name: 'ArticleVersionHistory',
+                    component: () =>
+                        import('@/views/User/ArticleVersionHistory.vue'),
                 },
             ],
         },
