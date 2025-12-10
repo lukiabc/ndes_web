@@ -662,7 +662,7 @@ const handleSubmit = async (type) => {
 
 // 按钮方法
 const viewArticle = () => {
-    router.push(`/article/${articleId.value}`);
+    router.push(`/articleDetail/${articleId.value}`);
 };
 
 const manageArticles = () => {
