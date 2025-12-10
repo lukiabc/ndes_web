@@ -1,3 +1,4 @@
+<!-- 内容管理 -->
 <template>
     <div class="content-management">
         <!-- 筛选区域 -->
@@ -34,72 +35,16 @@
 
         <!-- 文章列表 -->
         <div v-else-if="articleList.length > 0" class="article-list">
-            <el-card
+            <ArticleList
                 v-for="article in articleList"
                 :key="article.article_id"
-                class="article-item"
-                shadow="hover"
-            >
-                <template #header>
-                    <div class="article-header">
-                        <router-link
-                            :to="`/article/${article.article_id}`"
-                            target="_blank"
-                            class="title-link"
-                        >
-                            {{ article.title }}
-                        </router-link>
-                        <el-tag
-                            :type="getStatusType(article.status)"
-                            size="small"
-                        >
-                            {{ article.status }}
-                        </el-tag>
-                    </div>
-                </template>
-
-                <div class="article-body">
-                    <p class="excerpt">{{ getExcerpt(article.content) }}...</p>
-
-                    <div class="meta">
-                        <span>
-                            分类：{{
-                                article.Category?.category_name || '未分类'
-                            }}
-                        </span>
-                        <span>来源：{{ article.source }}</span>
-                        <span>
-                            发布时间：{{
-                                formatDate(article.publish_date) || '—'
-                            }}
-                        </span>
-                    </div>
-
-                    <div class="actions">
-                        <el-button
-                            v-if="article.status === '草稿'"
-                            size="small"
-                            type="primary"
-                            @click="editArticle(article.article_id)"
-                        >
-                            编辑
-                        </el-button>
-                        <el-button
-                            size="small"
-                            type="danger"
-                            @click="deleteArticle(article.article_id)"
-                        >
-                            删除
-                        </el-button>
-                        <el-button
-                            size="small"
-                            @click="previewArticle(article.article_id)"
-                        >
-                            预览
-                        </el-button>
-                    </div>
-                </div>
-            </el-card>
+                :article="article"
+                :draft-mode="false"
+                :show-publish-date="true"
+                @edit="editArticle"
+                @delete="deleteArticle"
+                @preview="previewArticle"
+            />
         </div>
 
         <!-- 空状态 -->
@@ -127,27 +72,14 @@ import { Search } from '@element-plus/icons-vue';
 import { debounce } from 'lodash-es';
 
 import { useUserStore } from '@/stores/userStore';
-
 import {
     searchArticlesByUserAPI,
     deleteArticleAPI,
     type ArticleItem,
 } from '@/api/article';
+import ArticleList from '@/views/User/components/ArticleList.vue';
 
-// 格式化日期
-const formatDate = (dateStr?: string): string => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
-
-// 状态映射
+// 状态选项（用于下拉）
 const statusTypeMap = {
     草稿: 'info',
     待审: 'warning',
@@ -156,16 +88,8 @@ const statusTypeMap = {
     退回修订: 'danger',
     拒绝: 'danger',
 } as const;
-
 const statusOptions = Object.keys(statusTypeMap);
 
-const getStatusType = (
-    status: string
-): 'success' | 'warning' | 'info' | 'danger' | '' => {
-    return statusTypeMap[status as keyof typeof statusTypeMap] || 'info';
-};
-
-// Router & User
 const router = useRouter();
 const userStore = useUserStore();
 const userId = computed(() => userStore.userInfo.result.user_id);
@@ -176,15 +100,8 @@ const articleList = ref<ArticleItem[]>([]);
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = 10;
-
 const filterStatus = ref<string | undefined>(undefined);
 const searchTitle = ref('');
-
-// 截取摘要
-const getExcerpt = (content: string) => {
-    const clean = content.replace(/<[^>]+>/g, '');
-    return clean.length > 200 ? clean.slice(0, 200) : clean;
-};
 
 // 获取文章列表
 const fetchArticles = async (page: number = 1) => {
@@ -195,7 +112,6 @@ const fetchArticles = async (page: number = 1) => {
 
     loading.value = true;
     try {
-        //  标题+状态搜索
         const res = await searchArticlesByUserAPI(
             Number(userId.value),
             searchTitle.value.trim() || undefined,
@@ -203,7 +119,6 @@ const fetchArticles = async (page: number = 1) => {
             page,
             pageSize
         );
-
         articleList.value = res.data.list;
         total.value = res.data.total;
         currentPage.value = page;
@@ -219,18 +134,13 @@ const fetchArticles = async (page: number = 1) => {
 
 // 防抖搜索
 const debouncedSearch = debounce(() => {
-    if (currentPage.value !== 1) {
-        currentPage.value = 1;
-    }
+    if (currentPage.value !== 1) currentPage.value = 1;
     fetchArticles(1);
 }, 300);
 
-// 监听两个筛选条件变化
-watch([filterStatus, searchTitle], () => {
-    debouncedSearch();
-});
+watch([filterStatus, searchTitle], debouncedSearch);
 
-// 分页切换
+// 分页
 const handlePageChange = (page: number) => {
     currentPage.value = page;
     fetchArticles(page);
@@ -257,38 +167,19 @@ const deleteArticle = async (id: number) => {
                 type: 'warning',
             }
         );
-
         await deleteArticleAPI(id);
         ElMessage.success('删除成功');
         fetchArticles(currentPage.value);
     } catch (error) {
-        if (error !== 'cancel') {
-            ElMessage.error('删除失败');
-        }
+        if (error !== 'cancel') ElMessage.error('删除失败');
     }
 };
 
-// 初始化
-onMounted(() => {
-    fetchArticles(1);
-});
+onMounted(() => fetchArticles(1));
 </script>
 
 <style lang="scss" scoped>
 .content-management {
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-
-        h2 {
-            margin: 0;
-            color: #333;
-            font-size: 20px;
-        }
-    }
-
     .filters {
         margin-bottom: 20px;
         display: flex;
@@ -299,45 +190,6 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
         gap: 16px;
-    }
-
-    .article-item {
-        .article-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            .title-link {
-                font-weight: 600;
-                font-size: 16px;
-                color: #1a73e8;
-                text-decoration: none;
-
-                &:hover {
-                    text-decoration: underline;
-                }
-            }
-        }
-
-        .excerpt {
-            color: #666;
-            line-height: 1.5;
-            margin: 10px 0;
-        }
-
-        .meta {
-            font-size: 12px;
-            color: #999;
-            display: flex;
-            gap: 20px;
-            margin: 8px 0;
-        }
-
-        .actions {
-            margin-top: 12px;
-            display: flex;
-            gap: 10px;
-        }
     }
 
     .pagination {
