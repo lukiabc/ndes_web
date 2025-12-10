@@ -77,6 +77,7 @@
 
                     <div class="actions">
                         <el-button
+                            v-if="article.status === '草稿'"
                             size="small"
                             type="primary"
                             @click="editArticle(article.article_id)"
@@ -91,7 +92,6 @@
                             删除
                         </el-button>
                         <el-button
-                            v-if="article.status === '已发布'"
                             size="small"
                             @click="previewArticle(article.article_id)"
                         >
@@ -126,17 +126,15 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import { debounce } from 'lodash-es';
 
-// Stores
 import { useUserStore } from '@/stores/userStore';
 
-// APIs —— ✅ 导入新 API
 import {
-    getArticlesByUserAndStatusAPI,
+    searchArticlesByUserAPI,
     deleteArticleAPI,
     type ArticleItem,
 } from '@/api/article';
 
-// 工具函数：格式化日期
+// 格式化日期
 const formatDate = (dateStr?: string): string => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -188,7 +186,7 @@ const getExcerpt = (content: string) => {
     return clean.length > 200 ? clean.slice(0, 200) : clean;
 };
 
-// 获取文章列表（核心）
+// 获取文章列表
 const fetchArticles = async (page: number = 1) => {
     if (!userId.value) {
         ElMessage.warning('用户信息异常，请重新登录');
@@ -197,26 +195,17 @@ const fetchArticles = async (page: number = 1) => {
 
     loading.value = true;
     try {
-        // ✅ 调用新 API，状态交给后端
-        const res = await getArticlesByUserAndStatusAPI(
+        //  标题+状态搜索
+        const res = await searchArticlesByUserAPI(
             Number(userId.value),
-            filterStatus.value, // 可为 undefined（查全部）
+            searchTitle.value.trim() || undefined,
+            filterStatus.value,
             page,
             pageSize
         );
 
-        let list = res.data.list;
-
-        // 仅对标题做前端模糊搜索（因后端未支持 title 参数）
-        if (searchTitle.value.trim()) {
-            const keyword = searchTitle.value.trim().toLowerCase();
-            list = list.filter((item) =>
-                item.title.toLowerCase().includes(keyword)
-            );
-        }
-
-        articleList.value = list;
-        total.value = res.data.total; // 后端返回的是当前状态下的总数
+        articleList.value = res.data.list;
+        total.value = res.data.total;
         currentPage.value = page;
     } catch (error) {
         console.error('加载文章失败:', error);
@@ -228,7 +217,7 @@ const fetchArticles = async (page: number = 1) => {
     }
 };
 
-// 防抖搜索（300ms）
+// 防抖搜索
 const debouncedSearch = debounce(() => {
     if (currentPage.value !== 1) {
         currentPage.value = 1;

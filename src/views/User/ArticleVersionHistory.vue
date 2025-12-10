@@ -1,7 +1,5 @@
 <template>
     <div class="user-version-history">
-        <h2>我的版本记录</h2>
-
         <el-alert
             v-if="!isLogin"
             title="请先登录"

@@ -632,31 +632,28 @@ const handleSubmit = async (type) => {
         }
 
         if (messageType === 'error') {
-            // 错误时仍可选择进结果页（或只用 ElMessage）
+            // 错误时仍可选择进结果页
             successTitle.value = displayMessage;
             successIconType.value = 'error';
-            showSuccessPage.value = true; // 如果你想统一用结果页
+            showSuccessPage.value = true;
         } else {
             // 成功类操作
             successTitle.value = SUCCESS_CONFIG[type]?.title || '操作成功';
             successIconType.value = SUCCESS_CONFIG[type]?.iconType || 'success';
             showSuccessPage.value = true;
         }
-        // showMessage(displayMessage, messageType);
 
         showSuccessPage.value = true;
     } catch (error) {
-        // console.error('提交失败:', error);
         const errorMsg =
             error.response?.data?.message ||
             error.response?.data?.error ||
             error.message ||
             '提交失败，请重试';
-        // showMessage(errorMsg, 'error');
 
         successTitle.value = errorMsg;
         successIconType.value = 'error';
-        showSuccessPage.value = true; // 统一体验
+        showSuccessPage.value = true; 
     } finally {
         submitting.value = false;
         submitType.value = '';
@@ -669,7 +666,7 @@ const viewArticle = () => {
 };
 
 const manageArticles = () => {
-    router.push('/content');
+    router.push('/user/content');
 };
 
 const startNewArticle = () => {
