@@ -7,8 +7,16 @@ interface user {
     avatar?: string;
 }
 
+// 用户登录参数
+interface LoginParams {
+    username: string;
+    password: string;
+    captcha: string; // 验证码内容
+    captchaId: string; // 验证码唯一ID
+}
+
 // 用户登录
-export const loginAPI = (data: { username: string; password: string }) => {
+export const loginAPI = (data: LoginParams) => {
     return httpInstance({
         url: '/users/login',
         method: 'POST',

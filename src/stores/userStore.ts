@@ -1,13 +1,24 @@
-// stores/userStore.ts
+// src/stores/userStore.ts
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
 import { loginAPI } from '@/api/user';
+
+interface UserInfo {
+    code: number;
+    msg: string;
+    result: {
+        user_id: string;
+        username: string;
+        email: string;
+        role_id: number;
+        avatar_url: string;
+        token: string;
+    };
+}
 
 export const useUserStore = defineStore(
     'user',
     () => {
-        // 用户完整信息（包含 token）
-        const userInfo = ref({
+        const userInfo = ref<UserInfo>({
             code: 0,
             msg: '',
             result: {
@@ -20,31 +31,40 @@ export const useUserStore = defineStore(
             },
         });
 
-        const isLogin = computed(() => {
-            return !!userInfo.value.result.token;
-        });
+        const isLogin = computed(() => !!userInfo.value.result.token);
+        const isAdmin = computed(
+            () => isLogin.value && userInfo.value.result.role_id === 1
+        );
+        const isUser = computed(
+            () => isLogin.value && userInfo.value.result.role_id === 2
+        );
 
-        const isAdmin = computed(() => {
-            return isLogin.value && Number(userInfo.value.result.role_id) === 1;
-        });
-
-        const isUser = computed(() => {
-            return isLogin.value && Number(userInfo.value.result.role_id) === 2;
-        });
-
-        // 登录
         const getUserInfo = async ({
             username,
             password,
+            captcha,
+            captchaId,
         }: {
             username: string;
             password: string;
+            captcha: string;
+            captchaId: string;
         }) => {
-            const res = await loginAPI({ username, password });
-            userInfo.value = res.data.userInfo;
+            const res = await loginAPI({
+                username,
+                password,
+                captcha,
+                captchaId,
+            });
+
+            // 确保 res.data.userInfo 是正确的结构
+            if (res.data && res.data.userInfo) {
+                userInfo.value = res.data.userInfo;
+            } else {
+                throw new Error('登录响应格式错误');
+            }
         };
 
-        // 登出
         const clearUserInfo = () => {
             userInfo.value = {
                 code: 0,
@@ -71,7 +91,6 @@ export const useUserStore = defineStore(
     },
     {
         persist: {
-            // 可选：自定义存储 key 或 storage
             key: 'user-store',
             storage: localStorage,
         },

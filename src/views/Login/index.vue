@@ -71,53 +71,53 @@ const rules = {
         { required: true, message: '密码不能为空', trigger: 'blur' },
         { min: 6, max: 16, message: '密码长度必须在6-16之间', trigger: 'blur' },
     ],
-    captcha: [
-        {
-            // 自定义校验函数，校验验证码是否正确
-            validator: (_rule: any, _value: string, callback: Function) => {
-                //检查 Captcha 组件是否加载（通过 ref 引用）
-                if (!captchaRef.value) {
-                    return callback(new Error('验证码组件未加载'));
-                }
-                // 调用 Captcha 组件的 validate 方法校验验证码
-                const { valid, errMsg } = captchaRef.value.validate();
-                if (!valid) {
-                    callback(new Error(errMsg));
-                } else {
-                    callback();
-                }
-            },
-            trigger: 'blur',
-        },
-    ],
+    captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
 };
 
-const login = () => {
-    formRef.value.validate(async (valid: boolean) => {
-        if (valid) {
-            console.log('校验通过');
-            await userStore.getUserInfo({
-                username: form.value.username,
-                password: form.value.password,
-            });
-            if (userStore.userInfo.msg === '登录成功') {
-                const role = Number(userStore.userInfo.result.role_id);
-                ElMessage.success('登录成功');
-                if (role === 1) {
-                    router.replace('/admin');
-                } else if (role === 2) {
-                    router.replace('/user');
-                } else {
-                    ElMessage.error('未知角色');
-                }
-            } else {
-                ElMessage.error(userStore.userInfo.msg);
-                console.log(userStore.userInfo.msg, '登录失败信息');
-            }
+// 登录
+const login = async () => {
+    const valid = await formRef.value.validate();
+    if (!valid) return;
+
+    // 获取验证码 ID （从子组件）
+    const captchaId = captchaRef.value?.getCaptchaId();
+    if (!captchaId) {
+        ElMessage.error('验证码未加载，请刷新');
+        return;
+    }
+
+    try {
+        // 调用 登录
+        await userStore.getUserInfo({
+            username: form.value.username,
+            password: form.value.password,
+            captcha: form.value.captcha,
+            captchaId,
+        });
+
+        if (userStore.userInfo.msg === '登录成功') {
+            ElMessage.success('登录成功');
+            const role = Number(userStore.userInfo.result.role_id);
+            router.replace(role === 1 ? '/admin' : '/user');
         } else {
-            console.log('校验失败');
+            ElMessage.error(userStore.userInfo.msg || '未知错误');
+            // 刷新验证码（防止重试旧验证码）
+            captchaRef.value?.refreshCaptcha();
         }
-    });
+    } catch (err) {
+        let errorMessage = '请求失败';
+
+        if (err.response) {
+            errorMessage = err.response.data?.error || '服务器返回错误';
+        } else if (err.request) {
+            errorMessage = '网络连接失败，请检查后端服务是否运行';
+        } else {
+            errorMessage = '请求配置错误：' + (err.message || '未知');
+        }
+
+        ElMessage.error(errorMessage);
+        captchaRef.value?.refreshCaptcha(); // 刷新验证码
+    }
 };
 </script>
 
