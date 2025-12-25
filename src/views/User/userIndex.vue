@@ -69,14 +69,14 @@
                         <el-icon><Edit /></el-icon>
                         <span>草稿箱</span>
                     </el-menu-item>
-                    <el-menu-item index="/user/favorites">
+                    <!-- <el-menu-item index="/user/favorites">
                         <el-icon><Star /></el-icon>
                         <span>我的收藏</span>
                     </el-menu-item>
                     <el-menu-item index="/user/history">
                         <el-icon><Clock /></el-icon>
                         <span>浏览历史</span>
-                    </el-menu-item>
+                    </el-menu-item> -->
                     <el-menu-item index="/user/ArticleVersionHistory">
                         <el-icon><Refresh /></el-icon>
                         <span>版本回溯</span>

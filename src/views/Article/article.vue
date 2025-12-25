@@ -47,11 +47,11 @@
                                 <el-icon><Document /></el-icon>
                                 <span>内容管理</span>
                             </el-dropdown-item>
-                            <el-dropdown-item command="save" class="menu-item">
+                            <el-dropdown-item command="draft" class="menu-item">
                                 <el-icon><Edit /></el-icon>
                                 <span>草稿箱</span>
                             </el-dropdown-item>
-                            <el-dropdown-item
+                            <!-- <el-dropdown-item
                                 command="favorites"
                                 class="menu-item"
                             >
@@ -64,9 +64,9 @@
                             >
                                 <el-icon><Clock /></el-icon>
                                 <span>浏览历史</span>
-                            </el-dropdown-item>
+                            </el-dropdown-item> -->
                             <el-dropdown-item
-                                command="version"
+                                command="ArticleVersionHistory"
                                 class="menu-item"
                             >
                                 <el-icon><Refresh /></el-icon>
@@ -300,11 +300,31 @@ const userStore = useUserStore();
 const router = useRouter();
 
 const handleCommand = (command: string) => {
-    if (command === 'logout') {
-        userStore.clearUserInfo();
-        router.push('/login');
-    } else if (command === 'userInfo') {
-        router.push('/userInfo');
+    switch (command) {
+        case 'userInfo':
+            router.push('/userInfo');
+            break;
+        case 'content':
+            router.push('/user/content');
+            break;
+        case 'draft':
+            router.push('/user/draft');
+            break;
+        case 'favorites':
+            router.push('/user/favorites');
+            break;
+        case 'history':
+            router.push('/user/history');
+            break;
+        case 'ArticleVersionHistory':
+            router.push('/user/ArticleVersionHistory');
+            break;
+        case 'logout':
+            userStore.clearUserInfo();
+            router.push('/login');
+            break;
+        default:
+            console.warn('未知的下拉菜单命令:', command);
     }
 };
 
@@ -653,7 +673,7 @@ const handleSubmit = async (type) => {
 
         successTitle.value = errorMsg;
         successIconType.value = 'error';
-        showSuccessPage.value = true; 
+        showSuccessPage.value = true;
     } finally {
         submitting.value = false;
         submitType.value = '';
