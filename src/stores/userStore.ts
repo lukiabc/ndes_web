@@ -1,4 +1,3 @@
-// src/stores/userStore.ts
 import { defineStore } from 'pinia';
 import { loginAPI } from '@/api/user';
 
@@ -12,6 +11,7 @@ interface UserInfo {
         role_id: number;
         avatar_url: string;
         token: string;
+        updated_at?: string;
     };
 }
 
@@ -28,6 +28,7 @@ export const useUserStore = defineStore(
                 role_id: 0,
                 avatar_url: '',
                 token: '',
+                updated_at: '',
             },
         });
 

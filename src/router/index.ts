@@ -162,7 +162,11 @@ router.beforeEach((to, from, next) => {
         return next(from.path || '/');
     }
 
-    if (to.path.startsWith('/user') && !userStore.isUser) {
+    if (
+        to.path.startsWith('/user') &&
+        to.path !== '/userInfo' &&
+        !userStore.isUser
+    ) {
         ElMessage.error('您不是普通用户');
         return next(from.path || '/');
     }

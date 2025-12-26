@@ -33,7 +33,14 @@ export const getUserInfoAPI = (userId: string) => {
 };
 
 // 编辑用户信息
-export const editUserInfoAPI = (userId: string, data: user) => {
+export const editUserInfoAPI = (
+    userId: string,
+    data: {
+        username: string;
+        email: string;
+        avatar_url: string;
+    }
+) => {
     return httpInstance({
         url: `/users/update/${userId}`,
         method: 'PUT',
