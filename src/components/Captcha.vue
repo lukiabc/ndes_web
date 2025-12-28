@@ -44,7 +44,6 @@ defineExpose({
 async function refreshCaptcha() {
     try {
         const res = await getCaptchaAPI();
-        console.log(res.data, '验证码数据');
 
         svg.value = res.data.svg;
         captchaId.value = res.data.captchaId;
