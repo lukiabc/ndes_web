@@ -115,7 +115,7 @@
                 sortable
             >
                 <template #default="scope">
-                    {{ formatDate(scope.row.publish_date) }}
+                    {{ formatDateTime(scope.row.publish_date) }}
                 </template>
             </el-table-column>
 
@@ -198,8 +198,8 @@ import {
 } from '@/api/article';
 import { getCategoryListAPI } from '@/api/category';
 import { getCarouselsAPI, type Carousel } from '@/api/carousels';
+import { formatDateTime } from '@/utils/formatDateTime';
 
-// 组件导入
 import AddToCarouselDialog from '@/views/Admin/components/AddToCarouselDialog.vue';
 import CarouselDetailDialog from '@/views/Admin/components/CarouselDetailDialog.vue';
 
@@ -272,18 +272,6 @@ const statusTagType = (status: string) => {
             退回修订: 'warning',
         }[status] || 'info'
     );
-};
-
-//格式化日期 输出为 "YYYY-MM-DD HH:mm"
-const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '--';
-    const date = new Date(dateStr);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-    )}-${String(date.getDate()).padStart(2, '0')} ${String(
-        date.getHours()
-    ).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 };
 
 // 截取文章内容摘要
