@@ -221,10 +221,10 @@ export const searchArticlesAPI = (
 // 创建文章
 export const createArticleAPI = (
     data: Record<string, any>,
-    as: 'submit' | 'draft' = 'submit'
+    action: 'save' | 'submit' | 'schedule' = 'submit'
 ) => {
     return httpInstance({
-        url: `/article/create?as=${as}`,
+        url: `/article/create?as=${action}`,
         method: 'POST',
         data,
         headers: {

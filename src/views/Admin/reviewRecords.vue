@@ -86,7 +86,7 @@
 
             <el-table-column label="审核时间" width="180" sortable>
                 <template #default="scope">
-                    {{ formatDateTime(scope.row.review_time) }}
+                    {{ scope.row.review_time }}
                 </template>
             </el-table-column>
 

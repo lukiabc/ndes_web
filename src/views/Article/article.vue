@@ -329,7 +329,8 @@ const handleCommand = (command: string) => {
 };
 
 const isEditing = computed(() => !!props.id);
-const articleId = computed(() => props.id || null);
+const editingId = props.id; // 原始编辑 ID（只读）
+const currentArticleId = ref<string | null>(props.id || null); // 可变，用于新建后赋值
 
 const ARTICLE_STATUS = {
     save: '草稿',
@@ -629,11 +630,19 @@ const handleSubmit = async (type) => {
         }
 
         let response;
+        let newArticleId = null;
 
         if (isEditing.value) {
-            response = await editArticleAPI(articleId.value, submitData);
+            response = await editArticleAPI(editingId, submitData);
+            newArticleId = editingId;
         } else {
             response = await createArticleAPI(submitData, action);
+            // 假设后端返回 article_id 或 id 字段
+            newArticleId = response.data.article.article_id;
+
+            if (newArticleId) {
+                currentArticleId.value = String(newArticleId);
+            }
         }
 
         const { status, message: backendMessage, rejectReason } = response.data;
@@ -641,6 +650,7 @@ const handleSubmit = async (type) => {
         let displayMessage = backendMessage;
         let messageType = 'success';
 
+        // 处理审核状态
         if (status === ARTICLE_STATUS.REJECTED) {
             displayMessage = `审核未通过：${rejectReason || '原因未知'}`;
             messageType = 'error';
@@ -651,6 +661,7 @@ const handleSubmit = async (type) => {
             messageType = 'success';
         }
 
+        // 设置成功页内容
         if (messageType === 'error') {
             // 错误时仍可选择进结果页
             successTitle.value = displayMessage;
@@ -682,7 +693,12 @@ const handleSubmit = async (type) => {
 
 // 按钮方法
 const viewArticle = () => {
-    router.push(`/articleDetail/${articleId.value}`);
+    console.log(currentArticleId.value, 'viewArticle');
+    if (!currentArticleId.value) {
+        showMessage('无法查看文章：ID 不存在', 'error');
+        return;
+    }
+    router.push(`/articleDetail/${currentArticleId.value}`);
 };
 
 const manageArticles = () => {
@@ -692,13 +708,14 @@ const manageArticles = () => {
 const startNewArticle = () => {
     resetForm();
     showSuccessPage.value = false;
+    currentArticleId.value = null;
 };
 
 onMounted(async () => {
     document.title = isEditing.value ? '编辑文章' : '创建文章';
     await fetchCategories();
     if (isEditing.value) {
-        await fetchArticle(articleId.value);
+        await fetchArticle(editingId);
     }
 });
 

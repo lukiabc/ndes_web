@@ -115,7 +115,7 @@
                 sortable
             >
                 <template #default="scope">
-                    {{ formatDateTime(scope.row.publish_date) }}
+                    {{ scope.row.publish_date }}
                 </template>
             </el-table-column>
 
