@@ -15,18 +15,14 @@
 </template>
 
 <script lang="ts" setup>
-import {
-    getArticlesByParentCategoryAPI,
-    type ArticleItem,
-} from '@/api/article';
+import { getCarouselArticlesAPI } from '@/api/category';
 import Carousel from '@/components/Carousel.vue';
 import Recommend from '@/views/Layout/components/Recommend.vue';
 import SubCategory from '@/views/Layout/components/SubCategory.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const articleList: any = ref([]); // 文章列表
-const ArticleCarouselList: any = ref([]); // 文章轮播图列表
+const ArticleCarouselList = ref<any[]>([]); // 文章轮播图列表
 
 // 从路由参数中获取 category_id
 const currentCategoryId = computed(() => {
@@ -35,13 +31,19 @@ const currentCategoryId = computed(() => {
 });
 
 const getArticleCarouselList = async () => {
-    const res = await getArticlesByParentCategoryAPI(currentCategoryId.value);
-    articleList.value = res.data.list;
-    ArticleCarouselList.value = res.data.list.map((item: ArticleItem) => ({
-        id: item.article_id,
-        title: item.title,
-        image: item.Media[0]?.media_url || '',
-    }));
+    if (isNaN(currentCategoryId.value)) return;
+
+    try {
+        const res = await getCarouselArticlesAPI(currentCategoryId.value);
+        ArticleCarouselList.value = res.data.list.map((item) => ({
+            id: item.article_id,
+            title: item.title,
+            image: item.image,
+        }));
+    } catch (error) {
+        console.error('获取轮播文章失败:', error);
+        ArticleCarouselList.value = [];
+    }
 };
 
 onMounted(() => {

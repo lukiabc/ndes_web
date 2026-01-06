@@ -39,11 +39,12 @@
 </template>
 
 <script lang="ts" setup>
+import { type ArticleItem } from '@/api/article';
 import {
-    getArticlesByParentCategoryAPI,
-    type ArticleItem,
-} from '@/api/article';
-import { getCategoryListAPI, type CategoryItem } from '@/api/category';
+    getCategoryListAPI,
+    getCarouselArticlesAPI,
+    type CategoryItem,
+} from '@/api/category';
 
 // 扩展类型：让分类包含自己的文章
 interface CategoryWithArticles extends CategoryItem {
@@ -63,14 +64,22 @@ const getCategoryList = async () => {
         const categoriesWithArticles = await Promise.all(
             topCategories.map(async (c: CategoryItem) => {
                 try {
-                    const articleRes = await getArticlesByParentCategoryAPI(
+                    const carouselRes = await getCarouselArticlesAPI(
                         c.category_id
                     );
-                    const publishedArticles = (
-                        articleRes.data.list || []
-                    ).filter(
-                        (article: ArticleItem) => article.status === '已发布'
-                    );
+                    const list = carouselRes.data.list || [];
+
+                    // 将 CarouselArticleItem 转换为 ArticleItem 格式，以兼容模板中对 Media 的访问
+                    const publishedArticles = list.map((item) => ({
+                        article_id: item.article_id,
+                        title: item.title,
+                        status: '已发布',
+                        Media: [
+                            {
+                                media_url: item.image, // 映射 image 到 Media[0].media_url
+                            },
+                        ],
+                    }));
 
                     return {
                         ...c,
@@ -139,8 +148,8 @@ onMounted(() => {
 }
 
 .image-box img {
-    width: 100%;
-    height: auto;
+    width: 385px;
+    height: 240px;
     display: block;
     border-radius: 4px;
 }

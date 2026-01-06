@@ -13,6 +13,20 @@ export interface CategoryItem {
     children?: Category[];
 }
 
+export interface CarouselArticleItem {
+    article_id: number;
+    title: string;
+    image: string;
+}
+
+// 获取每个父分类下发布时间最早的 5 篇带图文章
+export const getCarouselArticlesAPI = (parentId: number) => {
+    return httpInstance<{ list: CarouselArticleItem[] }>({
+        url: `/carousel/parent/${parentId}`,
+        method: 'GET',
+    });
+};
+
 // 模糊查询分类
 export const searchCategoriesAPI = (
     category_name: string,

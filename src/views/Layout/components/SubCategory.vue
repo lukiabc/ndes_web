@@ -1,5 +1,6 @@
 <template>
     <div>
+        <!-- 子分类导航+列表 -->
         <div
             class="first"
             v-if="subCategoryList.length > 0 && subCategoryList.length < 10"
@@ -41,6 +42,7 @@
                 </div>
             </div>
         </div>
+        <!-- 子分类卡片展示 -->
         <div class="second" v-else>
             <div
                 v-for="item in subCategoryList"
@@ -60,11 +62,7 @@
                         :to="`/article/${item.firstArticle.article_id}`"
                         class="first-title"
                     >
-                        {{
-                            analysisContentByFirstSentence(
-                                item.firstArticle.content
-                            )
-                        }}
+                        {{ analysisContent(item.firstArticle.content) }}
                     </router-link>
                 </template>
                 <span v-else class="first-title no-article">暂无文章</span>
@@ -77,10 +75,7 @@
 import { getCategoryChildrenAPI } from '@/api/category';
 import { getArticlesByCategoryAPI } from '@/api/article';
 import { Clock } from '@element-plus/icons-vue';
-import {
-    analysisContent,
-    analysisContentByFirstSentence,
-} from '@/utils/analysisContent';
+import { analysisContent } from '@/utils/analysisContent';
 import { useRoute } from 'vue-router';
 import { formatDateTime } from '@/utils/formatDateTime';
 
