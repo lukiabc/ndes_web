@@ -29,7 +29,10 @@
                     v-for="item in articleList"
                     :key="item.article_id"
                 >
-                    <router-link :to="`/article/${item.article_id}`">
+                    <router-link
+                        :to="`/article/${item.article_id}`"
+                        target="_blank"
+                    >
                         <span class="article-title">{{ item.title }}</span>
                     </router-link>
                     <div class="article-desc">
@@ -61,6 +64,7 @@
                     <router-link
                         :to="`/article/${item.firstArticle.article_id}`"
                         class="first-title"
+                        target="_blank"
                     >
                         {{ analysisContent(item.firstArticle.content) }}
                     </router-link>

@@ -35,6 +35,7 @@
                     <router-link
                         :to="`/article/${item.article_id}`"
                         class="article-link"
+                        target="_blank"
                     >
                         <span class="article-title">{{ item.title }}</span>
                     </router-link>

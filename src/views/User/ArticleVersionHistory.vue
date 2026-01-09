@@ -51,7 +51,7 @@
                 </template>
             </el-table-column>
 
-            <el-table-column label="编辑信息" width="180">
+            <el-table-column label="编辑人" width="180">
                 <template #default="{ row }">
                     <div>{{ row.editor || '系统' }}</div>
                     <div style="color: #999; font-size: 12px">
@@ -187,7 +187,7 @@ const sanitizeHTML = (html: string) => {
 };
 
 const goToArticle = (articleId: number) => {
-    router.push(`/article/edit/${articleId}`);
+    window.open(`/articleDetail/${articleId}`, '_blank');
 };
 
 // 获取用户版本列表

@@ -4,7 +4,7 @@
         <template #header>
             <div class="article-header">
                 <router-link
-                    :to="`/article/${article.article_id}`"
+                    :to="`/articleDetail/${article.article_id}`"
                     target="_blank"
                     class="title-link"
                 >

@@ -43,7 +43,6 @@
                 :show-publish-date="true"
                 @edit="editArticle"
                 @delete="deleteArticle"
-                @preview="previewArticle"
             />
         </div>
 
@@ -150,10 +149,6 @@ const handlePageChange = (page: number) => {
 const editArticle = (id: number) => {
     const url = router.resolve(`/article/edit/${id}`).href;
     window.open(url, '_blank');
-};
-
-const previewArticle = (id: number) => {
-    window.open(`/article/${id}`, '_blank');
 };
 
 const deleteArticle = async (id: number) => {

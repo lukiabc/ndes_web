@@ -364,12 +364,17 @@ const editorConfig = {
 
                 try {
                     const res = await uploadFileAPI(formData);
-                    if (res.data.success && res.data.files?.length > 0) {
-                        const url = res.data.files[0].url;
-                        const alt = res.data.files[0].originalname || '';
-                        insertFn(url, alt, url);
+                    // 👇 按 wangEditor v5 标准解析
+                    if (
+                        res.data.errno === 0 &&
+                        Array.isArray(res.data.data) &&
+                        res.data.data.length > 0
+                    ) {
+                        const { url } = res.data.data[0];
+                        const alt = file.name || '';
+                        insertFn(url, alt, url); // (url, alt, href)
                     } else {
-                        throw new Error('上传返回数据无效');
+                        throw new Error(res.data.message || '上传返回数据无效');
                     }
                 } catch (err) {
                     console.error('[图片上传失败]', err);
@@ -384,11 +389,15 @@ const editorConfig = {
 
                 try {
                     const res = await uploadFileAPI(formData);
-                    if (res.data.success && res.data.files?.length > 0) {
-                        const url = res.data.files[0].url;
-                        insertFn(url);
+                    if (
+                        res.data.errno === 0 &&
+                        Array.isArray(res.data.data) &&
+                        res.data.data.length > 0
+                    ) {
+                        const { url } = res.data.data[0];
+                        insertFn(url); // 视频只需传 url
                     } else {
-                        throw new Error('上传返回数据无效');
+                        throw new Error(res.data.message || '上传返回数据无效');
                     }
                 } catch (err) {
                     console.error('[视频上传失败]', err);

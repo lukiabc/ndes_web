@@ -32,15 +32,6 @@
                     </el-breadcrumb-item>
                     <el-breadcrumb-item>正文</el-breadcrumb-item>
                 </el-breadcrumb>
-
-                <el-button
-                    type="primary"
-                    size="small"
-                    @click="$router.back()"
-                    class="back-button"
-                >
-                    返回
-                </el-button>
             </div>
 
             <div v-if="loading" class="loading">

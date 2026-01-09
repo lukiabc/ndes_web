@@ -8,7 +8,10 @@
                 >
             </div>
             <div class="image-box">
-                <router-link :to="`/article/${c.articles[0].article_id}`">
+                <router-link
+                    :to="`/article/${c.articles[0].article_id}`"
+                    target="_blank"
+                >
                     <img
                         v-if="c.articles && c.articles[0]?.Media?.[0]"
                         :src="c.articles[0].Media[0].media_url"
@@ -17,7 +20,10 @@
                     <img v-else src="@/assets/images/login.png" alt="默认图" />
                 </router-link>
             </div>
-            <router-link :to="`/article/${c.articles[0].article_id}`">
+            <router-link
+                :to="`/article/${c.articles[0].article_id}`"
+                target="_blank"
+            >
                 <span class="image-title ellipsis">{{
                     c.articles[0]?.title || '默认标题'
                 }}</span>
@@ -29,7 +35,10 @@
                     :key="article.article_id"
                     class="title-list ellipsis"
                 >
-                    <router-link :to="`/article/${article.article_id}`">
+                    <router-link
+                        :to="`/article/${article.article_id}`"
+                        target="_blank"
+                    >
                         {{ article.title }}
                     </router-link>
                 </span>
@@ -130,7 +139,14 @@ onMounted(() => {
 .image-title {
     display: block;
     font-size: 14px;
+    max-width: 385px;
     font-weight: bold;
+    color: #333;
+}
+
+.title-list {
+    font-size: 14px;
+    max-width: 385px;
     color: #333;
 }
 

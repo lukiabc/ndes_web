@@ -21,6 +21,7 @@
                     :to="`/article/${item.article_id}`"
                     class="search-title"
                     v-html="sanitizeHtml(item.title)"
+                    target="_blank"
                 >
                 </router-link>
                 <div

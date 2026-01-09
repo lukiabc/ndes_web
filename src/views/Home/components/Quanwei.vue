@@ -13,6 +13,7 @@
                 :key="item.article_id"
                 :to="`/article/${item.article_id}`"
                 class="article-item"
+                target="_blank"
             >
                 <div class="title">{{ item.title }}</div>
                 <div class="date">

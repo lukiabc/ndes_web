@@ -8,7 +8,7 @@
                 @mouseleave="hideTitle(item.id)"
                 class="carousel-item"
             >
-                <router-link :to="`/article/${item.id}`">
+                <router-link :to="`/article/${item.id}`" target="_blank">
                     <img
                         v-if="item.image"
                         :src="item.image"

@@ -521,7 +521,7 @@ const loadArticles = async () => {
 
 // 查看文章详情
 const handleView = (row: ArticleItem) => {
-    router.push(`/articleDetail/${row.article_id}`);
+    window.open(`/articleDetail/${row.article_id}`, '_blank');
 };
 
 // 处理轮播图操作

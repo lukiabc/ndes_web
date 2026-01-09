@@ -12,6 +12,7 @@
                 <router-link
                     :to="`/article/${item.article_id}`"
                     class="recommend-title"
+                    target="_blank"
                     ><div class="recommend-title">
                         {{ item.title }}
                     </div></router-link

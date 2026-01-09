@@ -125,7 +125,6 @@
 <script lang="ts" setup>
 import { debounce } from 'lodash-es';
 import { useRouter } from 'vue-router';
-import { formatDateTime } from '@/utils/formatDateTime';
 import { type ArticleItem } from '@/api/article';
 import {
     getReviewRecordsListAPI,
@@ -167,7 +166,7 @@ const highlightText = (text: string, keyword: string) => {
 
 // 文章详情
 const handleView = (row: ArticleItem) => {
-    router.push(`/articleDetail/${row.article_id}`);
+    window.open(`/articleDetail/${row.article_id}`, '_blank');
 };
 
 // 加载审核记录
