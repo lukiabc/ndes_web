@@ -386,4 +386,20 @@ watch(
         justify-content: center;
     }
 }
+
+/* 只有当前激活的页码显示红色 */
+:deep(.el-pagination.is-background .el-pager li.active) {
+    background-color: $primary-base !important;
+    color: white !important;
+}
+
+:deep(.el-pagination) {
+    --el-color-primary: #{$primary-base}; // SCSS 插值
+}
+
+/* 鼠标悬停（hover）时也显示红色（模拟“点击时”的反馈） */
+:deep(.el-pagination.is-background .el-pager li:not(.active):hover) {
+    background-color: $primary-base !important;
+    color: white !important;
+}
 </style>

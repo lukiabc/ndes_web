@@ -158,7 +158,7 @@ watch(hoveredId, async (newId) => {
             const res = await getArticlesByCategoryAPI(newId, 1, 10);
             let list = res.data.list || [];
 
-            list = list.filter((item: any) => item.status === '已发布');
+            list = list.filter((item: any) => item.status === '已发布').slice(0, 5);
             articleList.value = list;
         } catch (error) {
             console.error('加载文章失败:', error);
