@@ -124,8 +124,8 @@
 
 <script lang="ts" setup>
 import { debounce } from 'lodash-es';
-import { useRouter } from 'vue-router';
 import { type ArticleItem } from '@/api/article';
+import { highlightText } from '@/utils/highlightText';
 import {
     getReviewRecordsListAPI,
     type ReviewRecord,
@@ -137,7 +137,6 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const loading = ref(false);
-const router = useRouter();
 
 type ReviewResult = '通过' | '拒绝' | '退回修订';
 
@@ -152,17 +151,6 @@ const reviewOptions = [
     { value: '退回修订', label: '退回修订' },
     { value: '拒绝', label: '拒绝' },
 ] as const;
-
-// 高亮关键词
-const highlightText = (text: string, keyword: string) => {
-    if (!keyword.trim()) return text;
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-    return text.replace(
-        regex,
-        '<mark style="background: #ffecd3; padding: 0 2px;">$1</mark>'
-    );
-};
 
 // 文章详情
 const handleView = (row: ArticleItem) => {
@@ -194,7 +182,7 @@ const loadRecords = async () => {
             params.article_id = articleIdNum;
         }
 
-        // 调用一次 API
+        // 调用 API
         const res = await getReviewRecordsListAPI(params);
         recordList.value = res.data.data.list;
         total.value = res.data.data.total;
@@ -209,10 +197,11 @@ const loadRecords = async () => {
 
 // 防抖搜索
 const debouncedLoad = debounce(() => {
-    currentPage.value = 1;
+    currentPage.value = 1; // 重置到第一页
     loadRecords();
 }, 300);
 
+// 监听搜索表单变化
 watch(
     () => [searchForm.keyword, searchForm.review_result, searchForm.article_id],
     () => {

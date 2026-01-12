@@ -11,6 +11,9 @@
                     </div>
                     <template #dropdown>
                         <el-dropdown-menu>
+                            <el-dropdown-item command="home"
+                                >首页</el-dropdown-item
+                            >
                             <el-dropdown-item command="userInfo"
                                 >个人中心</el-dropdown-item
                             >
@@ -87,6 +90,8 @@ const handleCommand = (command: string) => {
         router.push('/login');
     } else if (command === 'userInfo') {
         router.push('/userInfo');
+    } else if (command === 'home') {
+        router.push('/');
     }
 };
 

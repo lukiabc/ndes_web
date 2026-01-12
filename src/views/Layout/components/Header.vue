@@ -238,6 +238,7 @@ const handleCategoryClick = (item: Category) => {
     }
 };
 
+// 更新选中的父分类 ID 从路由
 const updateSelectedIdFromRoute = () => {
     const path = route.path;
 

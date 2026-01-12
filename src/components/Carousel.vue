@@ -1,3 +1,4 @@
+<!-- 轮播图组件 -->
 <template>
     <div class="home-carousel">
         <el-carousel height="400px" indicator-position="none">
@@ -43,10 +44,12 @@ const props = defineProps<{
 
 const hoveredId = ref(0);
 
+// 鼠标进入轮播项时显示标题
 const showTitle = (id: number) => {
     hoveredId.value = id;
 };
 
+// 鼠标离开轮播项时隐藏标题
 const hideTitle = (id: number) => {
     if (hoveredId.value === id) {
         hoveredId.value = 0;

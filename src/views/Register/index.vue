@@ -128,6 +128,7 @@ const rules = {
     captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
 };
 
+// 注册
 const register = async () => {
     const valid = await formRef.value?.validate();
     if (!valid) return;

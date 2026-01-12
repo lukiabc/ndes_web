@@ -30,6 +30,7 @@ const currentCategoryId = computed(() => {
     return id ? (Array.isArray(id) ? Number(id[0]) : Number(id)) : NaN;
 });
 
+// 获取文章轮播图列表
 const getArticleCarouselList = async () => {
     if (isNaN(currentCategoryId.value)) return;
 

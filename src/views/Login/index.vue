@@ -87,7 +87,7 @@ const login = async () => {
     }
 
     try {
-        // 调用 登录
+        // 调用登录接口
         await userStore.getUserInfo({
             username: form.value.username,
             password: form.value.password,

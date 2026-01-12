@@ -40,6 +40,7 @@ const articles = ref<ArticleItem[]>([]);
 const title = ref('');
 const parentId = ref(0);
 
+// 获取文章
 const getArticles = async () => {
     try {
         const res = await getArticlesByParentCategoryAPI(
@@ -59,6 +60,7 @@ const getArticles = async () => {
     }
 };
 
+// 格式化日期时间
 const formatDateTime = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN');

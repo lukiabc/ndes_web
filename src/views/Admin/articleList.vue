@@ -187,7 +187,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
-
 import {
     getArticleListAPI,
     getArticlesByCategoryAPI,
@@ -197,9 +196,8 @@ import {
     type ArticleItem,
 } from '@/api/article';
 import { getCategoryListAPI } from '@/api/category';
+import { highlightText } from '@/utils/highlightText';
 import { getCarouselsAPI, type Carousel } from '@/api/carousels';
-import { formatDateTime } from '@/utils/formatDateTime';
-
 import AddToCarouselDialog from '@/views/Admin/components/AddToCarouselDialog.vue';
 import CarouselDetailDialog from '@/views/Admin/components/CarouselDetailDialog.vue';
 
@@ -225,12 +223,10 @@ interface ArticleItemWithCarousel extends ArticleItem {
     isCarouselActiveNow?: boolean;
 }
 
-const router = useRouter();
-
-// 状态选项列表
-const statusOptions = ref<{ label: string; value: string }[]>([]);
+const statusOptions = ref<{ label: string; value: string }[]>([]); // 状态选项
 const categories = ref<{ id: string; name: string }[]>([]); // 分类列表
 const articles = ref<ArticleItemWithCarousel[]>([]); // 文章列表
+// 分页信息
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -238,14 +234,12 @@ const loading = ref(false);
 
 // 轮播图项映射表
 const activeCarouselsMap = ref<Map<number, Carousel>>(new Map());
-const dialogVisible = ref(false); // 轮播图详情弹窗控制
-// 当前选中的轮播图项，用于详情弹窗
-const selectedCarousel = ref<Carousel | null>(null);
 
-// 加入轮播图弹窗控制
-const addToCarouselDialogVisible = ref(false);
-// 当前选中的文章项，用于加入轮播图
-const selectedArticleForCarousel = ref<ArticleItemWithCarousel | null>(null);
+// 弹窗控制
+const dialogVisible = ref(false); // 轮播图详情弹窗控制
+const selectedCarousel = ref<Carousel | null>(null); // 当前选中的轮播图项，用于详情弹窗
+const addToCarouselDialogVisible = ref(false); // 加入轮播图弹窗控制
+const selectedArticleForCarousel = ref<ArticleItemWithCarousel | null>(null); // 当前选中的文章项，用于加入轮播图
 
 // 搜索表单响应式数据
 const searchForm = reactive({
@@ -274,24 +268,21 @@ const statusTagType = (status: string) => {
     );
 };
 
-// 截取文章内容摘要
+/**
+ * 截取文章内容摘要
+ * @param content 文章内容
+ * @returns 截取后的摘要
+ */
 const getExcerpt = (content: string) => {
-    const clean = content.replace(/<[^>]+>/g, '');
+    const clean = content.replace(/<[^>]+>/g, ''); // 去除 HTML 标签
     return clean.length > 60 ? clean.slice(0, 60) + '...' : clean;
 };
 
-// 高亮
-const highlightText = (text: string, keyword: string) => {
-    if (!keyword.trim()) return text;
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-    return text.replace(
-        regex,
-        '<mark style="background: #ffecd3; padding: 0 2px;">$1</mark>'
-    );
-};
-
-// 判断轮播项当前是否实际生效
+/**
+ * 判断轮播项当前是否实际生效
+ * @param item 轮播项
+ * @returns 是否生效
+ */
 const isCarouselActiveNow = (item: Carousel): boolean => {
     if (!item.is_active) return false;
 
@@ -311,14 +302,18 @@ const isCarouselActiveNow = (item: Carousel): boolean => {
     return true;
 };
 
-// 根据文章轮播状态返回按钮样式类型
+/**
+ * 根据文章轮播状态返回按钮样式类型
+ * @param article 文章项
+ * @returns 按钮样式类名
+ */
 const getCarouselButtonClass = (article: ArticleItemWithCarousel): string => {
     if (!article.inCarousel) {
         return 'primary'; // “加入轮播图”
     }
     const item = article.carouselItem;
     if (!item) {
-        return 'success'; // 兜底
+        return 'success';
     }
 
     const now = new Date();
@@ -334,19 +329,20 @@ const getCarouselButtonClass = (article: ArticleItemWithCarousel): string => {
     if (!item.is_active) {
         return 'danger'; // 已停用
     }
-
     if (start && today < start) {
         return 'warning'; // 未开始
     }
-
     if (end && today > end) {
         return 'info'; // 已过期
     }
-
     return 'success'; // 已在轮播
 };
 
-// 根据轮播项状态返回按钮文字
+/**
+ * 根据轮播项状态返回按钮文字
+ * @param item 轮播项
+ * @returns 按钮文字
+ */
 const getCarouselButtonTextByTime = (item: Carousel | null): string => {
     if (!item) return '已在轮播';
 
@@ -363,11 +359,9 @@ const getCarouselButtonTextByTime = (item: Carousel | null): string => {
     if (!item.is_active) {
         return '已停用';
     }
-
     if (start && today < start) {
         return '未开始';
     }
-
     if (end && today > end) {
         return '已过期';
     }

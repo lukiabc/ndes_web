@@ -34,12 +34,20 @@
                             </div>
                             <el-divider />
                             <el-dropdown-item
+                                command="home"
+                                class="menu-item"
+                            >
+                                <el-icon><House /></el-icon>
+                                <span>首页</span>
+                            </el-dropdown-item>
+                            <el-dropdown-item
                                 command="userInfo"
                                 class="menu-item"
                             >
                                 <el-icon><User /></el-icon>
                                 <span>个人中心</span>
                             </el-dropdown-item>
+                            
                             <el-dropdown-item
                                 command="content"
                                 class="menu-item"
@@ -51,20 +59,6 @@
                                 <el-icon><Edit /></el-icon>
                                 <span>草稿箱</span>
                             </el-dropdown-item>
-                            <!-- <el-dropdown-item
-                                command="favorites"
-                                class="menu-item"
-                            >
-                                <el-icon><Star /></el-icon>
-                                <span>我的收藏</span>
-                            </el-dropdown-item>
-                            <el-dropdown-item
-                                command="history"
-                                class="menu-item"
-                            >
-                                <el-icon><Clock /></el-icon>
-                                <span>浏览历史</span>
-                            </el-dropdown-item> -->
                             <el-dropdown-item
                                 command="ArticleVersionHistory"
                                 class="menu-item"
@@ -274,14 +268,13 @@ import { getCategoryListAPI } from '@/api/category';
 import { uploadFileAPI } from '@/api/uploads';
 import { useUserStore } from '@/stores/userStore';
 import {
+    House,
     ArrowRight,
     CircleCloseFilled,
-    Clock,
     Document,
     Edit,
     InfoFilled,
     Refresh,
-    Star,
     SuccessFilled,
     SwitchButton,
     User,
@@ -301,6 +294,9 @@ const router = useRouter();
 
 const handleCommand = (command: string) => {
     switch (command) {
+        case 'home':
+            router.push('/');
+            break;
         case 'userInfo':
             router.push('/userInfo');
             break;
@@ -340,6 +336,11 @@ const ARTICLE_STATUS = {
     SCHEDULED: '待发布',
 };
 
+/**
+ * 将 Date 对象转换为本地 datetime 字符串（yyyy-MM-ddTHH:mm）
+ * @param date - 要转换的 Date 对象
+ * @returns 本地 datetime 字符串
+ */
 function toLocalDatetimeString(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -352,7 +353,9 @@ function toLocalDatetimeString(date) {
 const editorRef = shallowRef();
 const mode = 'default';
 
+// 工具栏配置
 const toolbarConfig = {};
+// 编辑器配置
 const editorConfig = {
     placeholder: '请输入文章内容...',
     height: 'auto',
@@ -361,10 +364,8 @@ const editorConfig = {
             customUpload: async (file, insertFn) => {
                 const formData = new FormData();
                 formData.append('file', file);
-
                 try {
                     const res = await uploadFileAPI(formData);
-                    // 👇 按 wangEditor v5 标准解析
                     if (
                         res.data.errno === 0 &&
                         Array.isArray(res.data.data) &&
@@ -372,7 +373,7 @@ const editorConfig = {
                     ) {
                         const { url } = res.data.data[0];
                         const alt = file.name || '';
-                        insertFn(url, alt, url); // (url, alt, href)
+                        insertFn(url, alt, url);
                     } else {
                         throw new Error(res.data.message || '上传返回数据无效');
                     }
@@ -386,7 +387,6 @@ const editorConfig = {
             customUpload: async (file, insertFn) => {
                 const formData = new FormData();
                 formData.append('file', file);
-
                 try {
                     const res = await uploadFileAPI(formData);
                     if (
@@ -395,7 +395,7 @@ const editorConfig = {
                         res.data.data.length > 0
                     ) {
                         const { url } = res.data.data[0];
-                        insertFn(url); // 视频只需传 url
+                        insertFn(url);
                     } else {
                         throw new Error(res.data.message || '上传返回数据无效');
                     }
@@ -427,12 +427,13 @@ const errors = reactive({
 const categories = ref([]);
 const submitting = ref(false);
 const submitType = ref('');
-const showScheduleTime = ref(false);
-const isUnmounted = ref(false);
-const showSuccessPage = ref(false); // 新增：控制成功页显示
+const showScheduleTime = ref(false); //定时发布开关
+const isUnmounted = ref(false); // 组件卸载标志
+const showSuccessPage = ref(false); // 控制成功页显示
 const successTitle = ref('');
 const successIconType = ref('success');
 
+// 成功提示配置
 const SUCCESS_CONFIG = {
     save: {
         title: '文章已保存为草稿',
@@ -456,13 +457,18 @@ const SUCCESS_CONFIG = {
     },
 };
 
+/**
+ * 计算最小可设置的 datetime 字符串（当前时间加 5 分钟）
+ * @returns 最小 datetime 字符串
+ */
 const minDateTime = computed(() => {
     const now = new Date();
     now.setMinutes(now.getMinutes() + 5);
     return toLocalDatetimeString(now);
 });
 
-const fetchCategories = async () => {
+// 获取分类列表
+const getCategories = async () => {
     try {
         const response = await getCategoryListAPI();
         const allCategories = response.data || [];
@@ -484,7 +490,8 @@ const fetchCategories = async () => {
     }
 };
 
-const fetchArticle = async (id) => {
+// 获取文章详情
+const getArticle = async (id) => {
     try {
         const res = await getArticleDetailAPI(id);
         const data = res.data;
@@ -507,10 +514,12 @@ const fetchArticle = async (id) => {
     }
 };
 
+// 处理编辑器创建事件
 const handleCreated = (editor) => {
     editorRef.value = editor;
 };
 
+// 显示消息提示
 const showMessage = (
     text: string,
     type: 'success' | 'warning' | 'info' | 'error' = 'success'
@@ -523,18 +532,21 @@ const showMessage = (
     });
 };
 
+// 验证标题
 const validateTitle = () => {
     const valid = !!formData.title.trim();
     errors.title = valid ? '' : '标题不能为空';
     return valid;
 };
 
+// 验证分类
 const validateCategory = () => {
     const valid = !!formData.category_id;
     errors.category = valid ? '' : '请选择分类';
     return valid;
 };
 
+// 验证内容
 const validateContent = () => {
     const text = editorRef.value?.getText?.() || '';
     const valid = text.trim().length >= 10;
@@ -542,6 +554,7 @@ const validateContent = () => {
     return valid;
 };
 
+// 验证定时发布时间
 const validateScheduleTime = () => {
     if (!showScheduleTime.value) {
         errors.schedule = '';
@@ -561,17 +574,15 @@ const validateScheduleTime = () => {
     return true;
 };
 
+// 验证表单
 const validateForm = (type) => {
     let isValid = true;
-
     if (type === 'save') {
         return validateTitle();
     }
-
     if (!validateTitle()) isValid = false;
     if (!validateCategory()) isValid = false;
     if (!validateContent()) isValid = false;
-
     if (type === 'schedule') {
         if (!validateScheduleTime()) isValid = false;
     }
@@ -579,6 +590,7 @@ const validateForm = (type) => {
     return isValid;
 };
 
+// 切换定时发布时间
 const toggleSchedule = () => {
     showScheduleTime.value = !showScheduleTime.value;
     if (showScheduleTime.value) {
@@ -591,9 +603,9 @@ const toggleSchedule = () => {
     }
 };
 
+// 重置表单
 const resetForm = () => {
     if (isUnmounted.value || !editorRef.value) return;
-
     formData.title = '';
     formData.category_id = '';
     formData.content = '<p><br></p>';
@@ -606,6 +618,7 @@ const resetForm = () => {
     editorRef.value.setHtml('<p><br></p>');
 };
 
+// 提交表单
 const handleSubmit = async (type) => {
     if (!validateForm(type)) {
         showMessage('请填写完整的表单信息', 'error');
@@ -646,7 +659,6 @@ const handleSubmit = async (type) => {
             newArticleId = editingId;
         } else {
             response = await createArticleAPI(submitData, action);
-            // 假设后端返回 article_id 或 id 字段
             newArticleId = response.data.article.article_id;
 
             if (newArticleId) {
@@ -710,24 +722,28 @@ const viewArticle = () => {
     router.push(`/articleDetail/${currentArticleId.value}`);
 };
 
+// 管理文章
 const manageArticles = () => {
     router.push('/user/content');
 };
 
+// 开始新文章
 const startNewArticle = () => {
     resetForm();
     showSuccessPage.value = false;
     currentArticleId.value = null;
 };
 
+// 初始化文章详情
 onMounted(async () => {
     document.title = isEditing.value ? '编辑文章' : '创建文章';
-    await fetchCategories();
+    await getCategories();
     if (isEditing.value) {
-        await fetchArticle(editingId);
+        await getArticle(editingId);
     }
 });
 
+// 组件卸载时清理编辑器
 onBeforeUnmount(() => {
     isUnmounted.value = true;
     if (editorRef.value?.destroy) {

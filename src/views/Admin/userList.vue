@@ -179,7 +179,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-
+import { highlightText } from '@/utils/highlightText';
 import {
     getUserListAPI,
     getPendingUsersAPI,
@@ -233,17 +233,6 @@ const detailFormList = [
     },
 ];
 
-// 高亮关键词
-const highlightText = (text: string, keyword: string): string => {
-    if (!keyword.trim()) return text;
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-    return text.replace(
-        regex,
-        '<mark style="background: #ffecd3; padding: 0 2px;">$1</mark>'
-    );
-};
-
 // 防抖搜索
 let searchTimer: ReturnType<typeof setTimeout>;
 const debouncedSearch = (value: string) => {
@@ -256,15 +245,17 @@ const debouncedSearch = (value: string) => {
     }, 500);
 };
 
-// 加载用户列表（支持两种模式）
+// 加载用户列表
 const loadUsers = async () => {
     loading.value = true;
     try {
         if (viewMode.value === 'pending') {
+            // 待审核模式
             const res = await getPendingUsersAPI();
             userList.value = res.data.users || [];
             total.value = userList.value.length;
         } else {
+            // 全部用户模式
             const res = await getUserListAPI({
                 page: currentPage.value,
                 pageSize: pageSize.value,
@@ -282,7 +273,11 @@ const loadUsers = async () => {
     }
 };
 
-// 审核用户
+/**
+ * 审核用户
+ * @param user - 待审核用户
+ * @param action - 审核操作（approved 或 rejected）
+ */
 const handleReview = async (user: User, action: 'approved' | 'rejected') => {
     try {
         await reviewUserAPI(user.user_id, { action });
@@ -293,7 +288,10 @@ const handleReview = async (user: User, action: 'approved' | 'rejected') => {
     }
 };
 
-// 禁用/解禁用户
+/**
+ * 禁用/解禁用户
+ * @param user - 待操作用户
+ */
 const handleToggleDisable = async (user: User) => {
     const disable = !user.is_disabled; // 切换状态
     const actionText = disable ? '禁用' : '解禁';
@@ -309,7 +307,7 @@ const handleToggleDisable = async (user: User) => {
 
         await toggleUserDisableAPI(user.user_id, disable);
         ElMessage.success(`用户账号已成功${actionText}`);
-        loadUsers(); // 刷新列表以更新 is_disabled 状态
+        loadUsers();
     } catch (error) {
         if (error !== 'cancel') {
             ElMessage.error('操作失败');

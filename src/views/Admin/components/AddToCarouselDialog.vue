@@ -1,4 +1,4 @@
-<!-- 添加到轮播图弹窗 -->
+<!-- 轮播图管理弹窗组件 -->
 <template>
     <el-dialog
         v-model="visible"
@@ -17,6 +17,7 @@
             <!-- 封面上传 -->
             <el-form-item label="轮播封面" prop="cover_image">
                 <div class="upload-container">
+                    <!-- 封面图片预览 -->
                     <img
                         v-if="form.cover_image"
                         :src="form.cover_image"
@@ -112,10 +113,10 @@ import {
 } from '@/api/carousels';
 
 const props = defineProps<{
-    articleId?: number; // 新增时需要
+    articleId?: number; // 新增时需要关联的文章 ID
     articleTitle?: string; // 新增时默认标题
     isEdit?: boolean;
-    carouselId?: number; // 编辑时必需
+    carouselId?: number; // 编辑时必需轮播图 ID
     initialData?: Carousel; // 初始数据（用于编辑）
 }>();
 

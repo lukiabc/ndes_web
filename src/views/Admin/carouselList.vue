@@ -131,6 +131,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { highlightText } from '@/utils/highlightText';
 import {
     getCarouselsAPI,
     deleteCarouselsAPI,
@@ -138,7 +139,6 @@ import {
 } from '@/api/carousels';
 import AddToCarouselDialog from '@/views/Admin/components/AddToCarouselDialog.vue';
 
-// 数据
 const carouselList = ref<Carousel[]>([]);
 const total = ref(0);
 const currentPage = ref(1);
@@ -149,17 +149,11 @@ const loading = ref(false);
 const editDialogVisible = ref(false);
 const editingItem = ref<Carousel | null>(null);
 
-// 工具函数
-const highlightText = (text: string, keyword: string) => {
-    if (!keyword.trim()) return text;
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-    return text.replace(
-        regex,
-        '<mark style="background: #ffecd3; padding: 0 2px;">$1</mark>'
-    );
-};
-
+/**
+ * 格式化日期为 YYYY-MM-DD 格式
+ * @param dateStr 日期字符串
+ * @returns 格式化后的日期字符串
+ */
 const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
@@ -169,14 +163,22 @@ const formatDate = (dateStr?: string) => {
     )}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-// 格式化本地日期
+/**
+ * 格式化本地日期字符串为 Date 对象
+ * @param dateStr 日期字符串 YYYY-MM-DD
+ * @returns 格式化后的 Date 对象
+ */
 const parseDateAsLocal = (dateStr?: string): Date | null => {
     if (!dateStr) return null;
     const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(year, month - 1, day);
 };
 
-// 获取状态文本
+/**
+ * 获取轮播项状态文本
+ * @param item 轮播项
+ * @returns 状态文本
+ */
 const getCarouselStatusText = (item: Carousel): string => {
     if (!item.is_active) {
         return '已停用';
@@ -201,7 +203,11 @@ const getCarouselStatusText = (item: Carousel): string => {
     return '播放中';
 };
 
-// 获取状态标签类型（颜色）
+/**
+ * 获取轮播项状态标签类型（颜色）
+ * @param item 轮播项
+ * @returns 状态标签类型（颜色）
+ */
 const getCarouselStatusType = (
     item: Carousel
 ): 'success' | 'warning' | 'info' | 'danger' => {
@@ -227,7 +233,7 @@ const loadCarousels = async () => {
     loading.value = true;
     try {
         const res = await getCarouselsAPI(currentPage.value, pageSize.value);
-        const data = res.data as any; // 假设后端返回 { list, total }
+        const data = res.data as any;
         carouselList.value = data.list || [];
         total.value = data.total || 0;
     } catch (error) {
@@ -239,13 +245,19 @@ const loadCarousels = async () => {
     }
 };
 
-// 编辑
+/**
+ * 处理编辑轮播图
+ * @param item 轮播项
+ */
 const handleEdit = (item: Carousel) => {
     editingItem.value = { ...item };
     editDialogVisible.value = true;
 };
 
-// 删除
+/**
+ * 处理删除轮播图
+ * @param id 轮播项 ID
+ */
 const handleDelete = (id: number) => {
     ElMessageBox.confirm('确定删除该轮播图？此操作不可恢复。', '提示', {
         confirmButtonText: '确定',

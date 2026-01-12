@@ -48,7 +48,7 @@
                     :accept="item.accept || 'image/*'"
                     :disabled="mode === 'detail'"
                 />
-                <!-- 图片预览 -->
+                <!-- 图片预览 当 formObj[item.name] 有值时显示 -->
                 <div class="image-preview" v-if="formObj[item.name]">
                     <img
                         :src="getImageSrc(formObj[item.name])"
@@ -93,11 +93,10 @@ const props = defineProps({
 
 const emit = defineEmits(['submitData', 'cancel']);
 
-// const formObj = reactive({ ...props.editItem });
-
+// 表单数据对象
 const formObj = reactive({});
 
-// 当 editItem 改变时，自动更新 formObj
+// 监听 editItem 变化，自动更新 formObj
 watchEffect(() => {
     // 清空旧数据
     Object.keys(formObj).forEach((key) => delete formObj[key]);
@@ -108,7 +107,11 @@ watchEffect(() => {
     }
 });
 
-// 处理文件上传
+/**
+ * 处理文件上传
+ * @param event 文件上传事件对象
+ * @param fieldName 表单字段名，用于更新 formObj 对应字段
+ */
 const handleFileUpload = (event, fieldName) => {
     const file = event.target.files[0];
     if (file) {
@@ -116,31 +119,44 @@ const handleFileUpload = (event, fieldName) => {
     }
 };
 
-// 获取图片预览 URL
+/**
+ * 获取图片预览 URL
+ * @param file 文件对象或 URL 字符串
+ * @returns 图片预览 URL 字符串
+ */
 const getImageSrc = (file) => {
     if (file instanceof File || file instanceof Blob) {
+        // 本地文件 生成临时 URL
         return URL.createObjectURL(file);
     } else if (typeof file === 'string') {
+        // 远程 URL 或 Base64 字符串
         return file;
     }
     return '';
 };
 
+// 提交表单数据
 const submitData = () => {
     const formData = new FormData();
 
+    // 遍历 formObj 所有字段
     Object.keys(formObj).forEach((key) => {
         const value = formObj[key];
 
+        // 特殊处理 avatar_url 字段
         if (key === 'avatar_url') {
             if (value instanceof File) {
+                // 本地文件 直接上传
                 formData.append('avatar', value);
             } else if (typeof value === 'string' && value) {
+                // 远程 URL 或 Base64 字符串
                 formData.append('avatar', value);
             } else {
-                formData.append('avatar', ''); // 或跳过
+                // 空值 则清空
+                formData.append('avatar', '');
             }
         } else {
+            // 普通字段 转为空字符兜底
             formData.append(key, value ?? '');
         }
     });
@@ -148,6 +164,7 @@ const submitData = () => {
     emit('submitData', formData);
 };
 
+// 取消操作
 const cancel = () => {
     emit('cancel', {});
 };

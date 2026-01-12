@@ -90,6 +90,7 @@ import { getArticlesByStatus, type ArticleItem } from '@/api/article';
 import { debounce } from 'lodash-es';
 import { useRouter } from 'vue-router';
 import { searchPendingArticlesAPI } from '@/api/article';
+import { highlightText } from '@/utils/highlightText';
 
 const articleList = ref<ArticleItem[]>([]);
 const searchKey = ref('');
@@ -107,23 +108,13 @@ interface PaginatedResponse<T> {
     list: T[];
 }
 
-// 高亮关键词（支持 HTML 渲染）
-const highlightText = (text: string, keyword: string) => {
-    if (!keyword.trim()) return text;
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-    return text.replace(
-        regex,
-        '<mark style="background: #ffecd3; padding: 0 2px;">$1</mark>'
-    );
-};
-
 // 获取摘要
 const getExcerpt = (content: string) => {
     const clean = content.replace(/<[^>]+>/g, '');
     return clean.length > 60 ? clean.slice(0, 60) + '...' : clean;
 };
 
+// 审核文章
 const handleReview = (row: ArticleItem) => {
     router.push({
         name: 'articleDetailAdmin',
@@ -132,6 +123,7 @@ const handleReview = (row: ArticleItem) => {
     });
 };
 
+// 加载文章
 const loadArticles = async () => {
     loading.value = true;
     try {
@@ -139,12 +131,14 @@ const loadArticles = async () => {
         const keyword = searchKey.value.trim();
 
         if (keyword) {
+            // 搜索文章
             res = await searchPendingArticlesAPI(
                 keyword,
                 currentPage.value,
                 pageSize.value
             );
         } else {
+            // 加载所有待审文章
             res = await getArticlesByStatus(
                 '待审',
                 currentPage.value,

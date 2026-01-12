@@ -1,4 +1,4 @@
-<!-- src/components/Captcha.vue -->
+<!-- 验证码组件 -->
 <template>
     <div class="captcha-wrapper">
         <el-input v-model="innerValue" :placeholder="placeholder" />
@@ -15,18 +15,21 @@
 import { ref, watch } from 'vue';
 import { getCaptchaAPI } from '@/api/captcha';
 
+// placeholder 输入框的占位提示符
 const props = defineProps<{
     placeholder?: string;
 }>();
 
+// update:modelValue 事件 用于双向绑定
 const emit = defineEmits(['update:modelValue']);
 
-const innerValue = ref('');
+const innerValue = ref(''); // 用户输入的验证码内容
 const svg = ref('');
 const captchaId = ref('');
 
 // 暴露方法
 defineExpose({
+    // 验证方法 检查用户是否输入了验证码 以及验证码是否正确
     validate() {
         if (!innerValue.value) {
             return { valid: false, errMsg: '请输入验证码' };
@@ -36,11 +39,14 @@ defineExpose({
         }
         return { valid: true, errMsg: '' };
     },
-    refreshCaptcha,
-    getCaptchaId: () => captchaId.value,
+    refreshCaptcha, // 刷新验证码
+    getCaptchaId: () => captchaId.value, // 获取当前验证码 ID
 });
 
-// 获取验证码
+/**
+ * 刷新验证码
+ * 调用后端接口获取新的验证码图片和 ID
+ */
 async function refreshCaptcha() {
     try {
         const res = await getCaptchaAPI();

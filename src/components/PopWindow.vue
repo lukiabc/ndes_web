@@ -81,7 +81,6 @@ const submitModal = () => {
 </script>
 
 <style lang="scss" scoped>
-/* 遮罩层样式 */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -94,7 +93,6 @@ const submitModal = () => {
     z-index: 1000;
 }
 
-/* 弹框容器 */
 .modal-container {
     background-color: white;
     border-radius: 8px;
@@ -108,10 +106,8 @@ const submitModal = () => {
     top: 50%;
     transform: translate(-50%, -50%);
     border: 2px solid var(--color, #000);
-    // overflow: auto;   // 内容高度超过最大高度的时候， 出现滚动条
 }
 
-/* 弹框头部 */
 .modal-header {
     padding: 16px 24px;
     border-bottom: 1px solid #eee;
@@ -138,7 +134,6 @@ const submitModal = () => {
     color: #333;
 }
 
-/* 弹框内容 */
 .modal-content {
     padding: 24px;
     line-height: 1.6;
@@ -146,7 +141,6 @@ const submitModal = () => {
     max-height: var(--height, 300px);
 }
 
-/* 弹框底部按钮区域 */
 .modal-footer {
     padding: 16px 24px;
     border-top: 1px solid #eee;
@@ -163,7 +157,7 @@ const submitModal = () => {
     font-size: 14px;
     transition: all 0.2s;
 }
-// #2196F3
+
 .modal-btn-primary {
     background-color: var(--color, #000);
     color: white;
@@ -182,7 +176,6 @@ const submitModal = () => {
     background-color: #e0e0e0;
 }
 
-/* 动画效果 */
 @keyframes modalFadeIn {
     from {
         opacity: 0;
@@ -194,7 +187,6 @@ const submitModal = () => {
     }
 }
 
-/* 触发按钮样式 */
 .trigger-btn {
     padding: 12px 24px;
     background-color: #2196f3;

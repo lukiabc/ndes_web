@@ -100,7 +100,7 @@ const getSubCategoryList = async () => {
     const res = await getCategoryChildrenAPI(parentCategoryId.value);
     let list = res.data.data || [];
 
-    // 如果是走 .second 分支（即 >=10） 才需要加载每类的第一篇文章
+    // 如果是走 .second 分支即 >=10   才需要加载每类的第一篇文章
     if (list.length >= 10) {
         // 并发请求每个分类的第一篇已发布文章
         const articlePromises = list.map(async (category: any) => {
@@ -158,7 +158,9 @@ watch(hoveredId, async (newId) => {
             const res = await getArticlesByCategoryAPI(newId, 1, 10);
             let list = res.data.list || [];
 
-            list = list.filter((item: any) => item.status === '已发布').slice(0, 5);
+            list = list
+                .filter((item: any) => item.status === '已发布')
+                .slice(0, 5);
             articleList.value = list;
         } catch (error) {
             console.error('加载文章失败:', error);

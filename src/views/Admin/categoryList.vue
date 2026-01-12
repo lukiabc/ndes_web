@@ -133,7 +133,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-
+import { buildTree } from '@/utils/treeUtils';
 import {
     getCategoryListAPI,
     deleteCategoryAPI,
@@ -142,8 +142,6 @@ import {
     searchCategoriesAPI,
     createCategoryAPI,
 } from '@/api/category';
-
-import { buildTree } from '@/utils/treeUtils';
 
 interface Category {
     category_id: string;
@@ -174,7 +172,7 @@ const addForm = ref<{
 // 搜索分类
 const searchCategories = async () => {
     if (!search.value.trim()) {
-        fetchCategories();
+        getCategories(); // 恢复原始数据
         return;
     }
     loading.value = true;
@@ -214,7 +212,7 @@ const editForm = ref<{ category_name: string; parent_id: number | null }>({
 const currentRow = ref<Category | null>(null); // 当前编辑的行
 
 // 获取所有分类
-const fetchCategories = async () => {
+const getCategories = async () => {
     loading.value = true;
     try {
         const res = await getCategoryListAPI();
@@ -264,7 +262,7 @@ const handleAddSubmit = async () => {
         // 刷新数据
         isSearching.value && search.value.trim()
             ? searchCategories()
-            : fetchCategories();
+            : getCategories();
     } catch (error: any) {
         const msg = error.response?.data?.message || '添加失败，请稍后重试';
         ElMessage.error(msg);
@@ -298,7 +296,7 @@ const handleSubmit = async () => {
         });
         ElMessage.success('更新成功');
         editDialogVisible.value = false;
-        fetchCategories(); // 刷新列表
+        getCategories(); // 刷新列表
     } catch (error) {
         ElMessage.error('更新失败，请重试');
         console.error('更新失败:', error);
@@ -331,7 +329,7 @@ const onDelete = (row: any) => {
             try {
                 await deleteApi();
                 ElMessage.success('删除成功');
-                fetchCategories(); // 刷新列表
+                getCategories(); // 刷新列表
             } catch (error) {
                 ElMessage.error('删除失败，请重试');
                 console.error('删除失败:', error);
@@ -344,7 +342,7 @@ const onDelete = (row: any) => {
 
 // 页面加载时获取数据
 onMounted(() => {
-    fetchCategories();
+    getCategories();
 });
 </script>
 

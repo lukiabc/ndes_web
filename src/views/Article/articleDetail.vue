@@ -11,6 +11,7 @@
                         首页
                     </el-breadcrumb-item>
 
+                    <!-- 父分类 -->
                     <el-breadcrumb-item
                         :to="{
                             name: isBackend ? 'articleList' : 'category',
@@ -22,6 +23,8 @@
                     >
                         {{ parentCategoryName }}
                     </el-breadcrumb-item>
+
+                    <!-- 子分类 -->
                     <el-breadcrumb-item
                         :to="{
                             name: isBackend ? 'articleList' : 'subCategory',
@@ -173,6 +176,7 @@ const presetComments = {
 
 type ReviewResult = (typeof reviewOptions)[number]['value'];
 
+// 审核表单数据
 const reviewForm = ref<{
     review_result: ReviewResult;
     review_comments: string;
@@ -182,6 +186,7 @@ const reviewForm = ref<{
 });
 const submitting = ref(false);
 
+// 提交审核
 const submitReview = async () => {
     if (!article.value) {
         ElMessage.warning('文章信息未加载');
@@ -271,24 +276,26 @@ const childCategoryName = computed(() => {
     return article.value?.Category?.category_name || '无子分类';
 });
 
-// 渲染内容（替换图片域名）
+// 渲染内容
 const renderedContent = computed(() => {
-    const content = article.value?.content || '';
-    return content.replace(
-        /http:\/\/localhost:3000/g,
-        import.meta.env.VITE_IMAGE_DOMAIN || 'http://localhost:3000'
-    );
+    let content = article.value?.content || '';
+    // 只有在开发环境且内容包含 localhost 时才替换
+    if (import.meta.env.DEV) {
+        content = content.replace(
+            /http:\/\/localhost:3000/g,
+            import.meta.env.VITE_IMAGE_DOMAIN || 'http://localhost:3000'
+        );
+    }
+    return content;
 });
 </script>
 
 <style scoped>
-/* 前台模式：自然流式布局 */
 .article-detail-container {
     width: 100%;
     padding: 20px;
 }
 
-/* 后台模式：固定高度 + 滚动 */
 .article-detail-container.backend-mode {
     height: calc(100vh - 10px);
     overflow-y: auto;

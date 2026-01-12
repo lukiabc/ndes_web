@@ -121,13 +121,14 @@ const fetchSearchResults = async () => {
     }
 };
 
-// 分页事件
+// 分页大小改变
 const handleSizeChange = (newSize: number) => {
     pageSize.value = newSize;
     currentPage.value = 1;
     fetchSearchResults();
 };
 
+// 分页切换
 const handleCurrentChange = (newPage: number) => {
     currentPage.value = newPage;
     fetchSearchResults();

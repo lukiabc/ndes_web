@@ -121,9 +121,10 @@ const rules = ref<FormRules>({
     ],
 });
 
-// 获取列表数据
-const fetchSensitiveWords = async () => {
+// 获取敏感词列表
+const getSensitiveWords = async () => {
     try {
+        // 根据是否油搜索关键词决定调用哪个 API
         const api = searchKey.value
             ? searchSensitiveWordsAPI(
                   searchKey.value,
@@ -147,19 +148,20 @@ const fetchSensitiveWords = async () => {
 // 搜索
 const handleSearch = () => {
     page.value = 1; // 重置到第一页
-    fetchSensitiveWords();
+    getSensitiveWords();
 };
 
 // 分页变化
 const handleCurrentChange = (newPage: number) => {
     page.value = newPage;
-    fetchSensitiveWords();
+    getSensitiveWords();
 };
 
+// 每页条数变化
 const handleSizeChange = (newSize: number) => {
     pageSize.value = newSize;
     page.value = 1;
-    fetchSensitiveWords();
+    getSensitiveWords();
 };
 
 // 删除敏感词
@@ -175,7 +177,7 @@ const handleDelete = async (row: any) => {
         await deleteSensitiveWordAPI(row.id);
         ElMessage.success('删除成功');
         // 重新加载列表
-        fetchSensitiveWords();
+        getSensitiveWords();
     } catch (error) {
         if (error !== 'cancel') {
             ElMessage.error('删除失败');
@@ -222,7 +224,7 @@ const submitForm = async () => {
 
         ElMessage.success('操作成功');
         dialogVisible.value = false;
-        fetchSensitiveWords();
+        getSensitiveWords();
     } catch (error) {
         ElMessage.error('操作失败');
     }
@@ -230,7 +232,7 @@ const submitForm = async () => {
 
 // 页面加载时获取数据
 onMounted(() => {
-    fetchSensitiveWords();
+    getSensitiveWords();
 });
 </script>
 

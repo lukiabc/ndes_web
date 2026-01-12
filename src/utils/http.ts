@@ -35,7 +35,7 @@ httpInstance.interceptors.response.use(
     function (error) {
         ElMessage.warning(error.response.data.message);
 
-        // 401 状态码，清除用户信息
+        // 401 未授权错误，清除用户信息
         if (error.response.status === 401) {
             useUserStore().clearUserInfo;
             router.push('/login');

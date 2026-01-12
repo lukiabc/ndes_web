@@ -90,6 +90,7 @@ const getCategoryList = async () => {
                         ],
                     }));
 
+                    // 返回合并后的分类 + 文章数据
                     return {
                         ...c,
                         articles: publishedArticles,

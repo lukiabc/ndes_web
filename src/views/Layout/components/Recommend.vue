@@ -54,6 +54,7 @@ onMounted(() => {
     getRecommendList();
 });
 
+// 监听路由参数变化
 watch(
     () => route.params.id,
     (newId) => {

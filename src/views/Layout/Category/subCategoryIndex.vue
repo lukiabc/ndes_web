@@ -202,6 +202,7 @@ const handleSizeChange = (val: number) => {
     }
 };
 
+// 分页切换
 const handleCurrentChange = (val: number) => {
     currentPage.value = val;
     if (currentView.value === 'parent') {
@@ -230,7 +231,7 @@ const initialize = async () => {
         currentView.value = 'child';
         currentId.value = id;
         loadChildArticles();
-        // 👇 设置全局激活的父分类 ID
+        // 设置全局激活的父分类 ID
         categoryStore.setActiveParentId(parentId.value);
     } else {
         currentView.value = 'parent';
@@ -275,7 +276,7 @@ watch(
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 1px;
-        cursor: pointer; /* 可点击 */
+        cursor: pointer;
         user-select: none;
         transition: background-color 0.2s;
     }
