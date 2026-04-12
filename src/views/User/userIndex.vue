@@ -118,8 +118,10 @@ const activeMenu = computed(() => {
 const handleCommand = (command: string) => {
     if (command === 'logout') {
         userStore.clearUserInfo();
+        document.title = '登录';
         router.push('/login');
     } else if (command === 'userInfo') {
+        document.title = '个人中心';
         router.push('/userInfo');
     }
 };

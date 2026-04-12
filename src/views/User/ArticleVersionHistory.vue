@@ -1,5 +1,6 @@
 <template>
     <div class="user-version-history">
+        <!-- 状态提示 -->
         <el-alert
             v-if="!isLogin"
             title="请先登录"
@@ -8,49 +9,43 @@
             show-icon
             style="margin-bottom: 20px"
         />
-
         <el-skeleton v-else-if="loading" :rows="6" animated />
-
         <el-alert v-else-if="error" :title="error" type="error" show-icon />
 
-        <el-table
-            v-else
-            :data="versionList"
-            style="width: 100%"
-            v-loading="reverting"
-        >
-            <!-- 所属文章 -->
+        <!-- 版本列表 -->
+        <el-table v-else :data="versionList" style="width: 100%">
+            <el-table-column
+                label="序号"
+                type="index"
+                prop="index"
+                width="80"
+            />
             <el-table-column
                 label="文章ID"
                 prop="article_id"
                 width="100"
                 sortable
             />
-
             <el-table-column label="版本号" width="100">
-                <template #default="{ row }"
-                    >v{{ row.version_number }}</template
-                >
+                <template #default="{ row }">
+                    v{{ row.version_number }}
+                </template>
             </el-table-column>
-
-            <el-table-column label="文章标题" min-width="80">
+            <el-table-column label="文章标题" min-width="100">
                 <template #default="{ row }">
                     <el-link
                         type="primary"
                         @click="goToArticle(row.article_id)"
-                        style="margin-left: 8px"
                     >
                         {{ row.title }}
                     </el-link>
                 </template>
             </el-table-column>
-
             <el-table-column label="内容摘要" min-width="200" sortable>
                 <template #default="scope">
                     <span v-html="getExcerpt(scope.row.content)" />
                 </template>
             </el-table-column>
-
             <el-table-column label="编辑人" width="180">
                 <template #default="{ row }">
                     <div>{{ row.editor || '系统' }}</div>
@@ -60,20 +55,21 @@
                 </template>
             </el-table-column>
 
-            <el-table-column label="操作" width="140" fixed="right">
+            <el-table-column label="操作" width="180" fixed="right">
                 <template #default="{ row }">
-                    <el-button size="small" @click="showDetail(row)"
-                        >查看</el-button
+                    <el-button
+                        size="small"
+                        type="primary"
+                        plain
+                        @click="showDiff(row)"
                     >
+                        查看差异
+                    </el-button>
+
                     <el-button
                         size="small"
                         type="warning"
                         @click="handleRevert(row)"
-                        :disabled="
-                            reverting ||
-                            row.total_versions < 2 ||
-                            row.version_number === row.total_versions
-                        "
                     >
                         回溯
                     </el-button>
@@ -81,11 +77,10 @@
             </el-table-column>
         </el-table>
 
-        <!-- 分页 -->
         <el-pagination
             v-if="isLogin && !loading && versionList.length > 0"
             background
-            layout="prev, pager, next, total"
+            layout="total, prev, pager, next, jumper"
             :current-page="page"
             :page-size="limit"
             :total="totalItems"
@@ -93,110 +88,123 @@
             style="margin-top: 20px; justify-content: center; display: flex"
         />
 
-        <!-- 详情弹窗 -->
+        <!-- 差异对比弹窗 -->
         <el-dialog
-            v-model="dialogVisible"
-            title="版本详情"
-            width="60%"
+            v-model="diffDialogVisible"
+            title="版本差异对比"
+            width="90%"
             destroy-on-close
+            class="diff-dialog"
+            :draggable="true"
+            :center="true"
         >
-            <div v-if="selectedVersion">
-                <p>
-                    <strong>文章：</strong>{{ selectedVersion.article?.title }}
-                </p>
-                <p>
-                    <strong>版本号：</strong>v{{
-                        selectedVersion.version_number
-                    }}
-                </p>
-                <p>
-                    <strong>编辑人：</strong
-                    >{{ selectedVersion.editor || '系统' }}
-                </p>
-                <p>
-                    <strong>时间：</strong
-                    >{{ formatDate(selectedVersion.created_at) }}
-                </p>
-                <el-divider />
-                <div
-                    class="content-preview"
-                    v-html="sanitizeHTML(selectedVersion.content)"
-                ></div>
+            <div v-if="baseVersion && targetVersion" class="diff-container">
+                <div class="diff-content">
+                    <div class="diff-column">
+                        <div class="diff-column-header">
+                            <el-tag type="danger" size="large">
+                                当前最新版本 (v{{ baseVersion.version_number }})
+                            </el-tag>
+                        </div>
+                        <div class="diff-column-content">
+                            <h4 style="text-align: center">
+                                {{ baseVersion.title }}
+                            </h4>
+                            <div v-html="baseVersion.content" />
+                        </div>
+                    </div>
+
+                    <div class="diff-column">
+                        <div class="diff-column-header">
+                            <el-tag type="success" size="large">
+                                选中历史版本 (v{{
+                                    targetVersion.version_number
+                                }})
+                            </el-tag>
+                        </div>
+                        <div class="diff-column-content">
+                            <h4 style="text-align: center">
+                                {{ targetVersion.title }}
+                            </h4>
+                            <div v-html="targetVersion.content" />
+                        </div>
+                    </div>
+                </div>
+                <el-alert
+                    title="说明"
+                    type="info"
+                    description="左右两侧分别显示当前最新版本和历史版本的完整内容，方便您直接对比。"
+                    show-icon
+                    :closable="false"
+                />
             </div>
             <template #footer>
-                <el-button @click="dialogVisible = false">关闭</el-button>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: flex-end;
+                        width: 100%;
+                    "
+                >
+                    <el-button @click="diffDialogVisible = false"
+                        >关闭</el-button
+                    >
+                </div>
             </template>
         </el-dialog>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import dayjs from 'dayjs';
-import { useRouter } from 'vue-router';
-import DOMPurify from 'dompurify';
-
 import {
-    getVersionsByUserAPI,
+    getLatestVersionAPI,
     getVersionDetailAPI,
+    getVersionsByUserAPI,
     revertToVersionAPI,
     type ArticleVersionItem,
 } from '@/api/articleVersion';
-
 import { useUserStore } from '@/stores/userStore';
+import dayjs from 'dayjs';
+import DOMPurify from 'dompurify';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { computed, onMounted, ref } from 'vue';
 
 const userStore = useUserStore();
-const router = useRouter();
 
-// 从 store 获取用户信息
-const isLogin = computed(() => userStore.isLogin);
-const currentUserId = computed(() => {
-    return Number(userStore.userInfo.result.user_id);
-});
-
-// 状态
+// --- 状态管理 ---
 const loading = ref(false);
-const reverting = ref(false);
 const error = ref<string | null>(null);
-const dialogVisible = ref(false);
-const selectedVersion = ref<ArticleVersionItem | null>(null);
+const diffDialogVisible = ref(false);
+const diffHtml = ref('');
 
-// 分页
+// 差异计算用的临时变量
+const baseVersion = ref<ArticleVersionItem | null>(null); // 最新版
+const targetVersion = ref<ArticleVersionItem | null>(null); // 选中的旧版本
+
+// --- 列表与分页 ---
 const page = ref(1);
 const limit = ref(10);
 const totalItems = ref(0);
-const versionList = ref<
-    (ArticleVersionItem & {
-        article: NonNullable<ArticleVersionItem['article']>;
-    })[]
->([]);
+const versionList = ref<ArticleVersionItem[]>([]);
 
-// 工具函数
+// --- 格式化函数 ---
 const formatDate = (dateStr: string) =>
     dayjs(dateStr).format('YYYY-MM-DD HH:mm');
 
-// 截取摘要
 const getExcerpt = (content: string) => {
     const clean = content.replace(/<[^>]+>/g, '');
     return clean.length > 80 ? clean.slice(0, 80) + '...' : clean;
 };
 
-const sanitizeHTML = (html: string) => {
-    return DOMPurify.sanitize(html);
-};
+const sanitizeHTML = (html: string) => DOMPurify.sanitize(html);
 
 const goToArticle = (articleId: number) => {
     window.open(`/articleDetail/${articleId}`, '_blank');
 };
 
-// 获取用户版本列表
+// 获取用户的版本列表
 const fetchVersions = async () => {
-    if (!isLogin.value || !currentUserId.value) {
-        error.value = '用户未登录或 ID 无效';
-        return;
-    }
-
+    if (!isLogin.value || !currentUserId.value) return;
     loading.value = true;
     error.value = null;
     try {
@@ -216,57 +224,68 @@ const fetchVersions = async () => {
     }
 };
 
-// 查看详情
-const showDetail = async (version: (typeof versionList.value)[0]) => {
+// 查看版本差异
+const showDiff = async (targetRow: ArticleVersionItem) => {
     try {
-        const res = await getVersionDetailAPI(version.version_id);
-        selectedVersion.value = res.data;
-        dialogVisible.value = true;
-    } catch {
-        ElMessage.error('加载版本详情失败');
+        // 获取文章的最新版本信息
+        const latestVersionRes: any = await getLatestVersionAPI(
+            targetRow.article_id
+        );
+
+        // 获取最新版本的详细信息
+        const latestVersionDetailRes = await getVersionDetailAPI(
+            latestVersionRes.data.version_id
+        );
+        const latest = latestVersionDetailRes.data;
+
+        baseVersion.value = latest;
+        targetVersion.value = targetRow;
+
+        diffDialogVisible.value = true;
+    } catch (err) {
+        ElMessage.error('加载差异失败');
     }
 };
 
-// 回溯操作
-const handleRevert = (version: (typeof versionList.value)[0]) => {
-    ElMessageBox.confirm(
-        `确定要将文章 <strong>${version.article.title}</strong> 回溯到 <strong>v${version.version_number}</strong> 吗？<br/>操作后会生成新版本，存到草稿箱中”。`,
-        '确认回溯',
-        {
-            dangerouslyUseHTMLString: true,
-            type: 'warning',
-        }
-    )
-        .then(async () => {
-            if (!currentUserId.value) return;
-
-            reverting.value = true;
-            try {
-                await revertToVersionAPI(version.article_id, {
-                    version_number: version.version_number,
-                    user_id: currentUserId.value,
-                    editor: userStore.userInfo.result.username,
-                });
-                ElMessage.success('回溯成功！已生成新版本。');
-                fetchVersions(); // 刷新
-            } catch (err: any) {
-                ElMessage.error(
-                    err?.response?.data?.message || '回溯失败，请重试'
-                );
-            } finally {
-                reverting.value = false;
+// 回溯到指定版本
+const handleRevert = async (targetRow: ArticleVersionItem) => {
+    try {
+        await ElMessageBox.confirm(
+            `确定要将文章回溯到版本 v${targetRow.version_number} 吗？此操作不可撤销。`,
+            '警告',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
             }
-        })
-        .catch(() => {});
+        );
+
+        // 执行回溯 API
+        await revertToVersionAPI(targetRow.article_id, {
+            version_number: targetRow.version_number,
+            user_id: currentUserId.value,
+            editor: userStore.userInfo.result.username,
+        });
+
+        ElMessage.success('回溯成功！');
+        fetchVersions(); // 刷新列表
+    } catch (err) {
+        // 如果是用户取消，不提示错误
+        if (err !== 'cancel') {
+            ElMessage.error('回溯失败');
+        }
+    }
 };
 
-// 分页切换
+// 分页与生命周期处理
 const handlePageChange = (newPage: number) => {
     page.value = newPage;
     fetchVersions();
 };
 
-// 初始化
+const isLogin = computed(() => userStore.isLogin);
+const currentUserId = computed(() => Number(userStore.userInfo.result.user_id));
+
 onMounted(() => {
     if (isLogin.value) {
         fetchVersions();
@@ -279,15 +298,75 @@ onMounted(() => {
     padding: 20px;
     background: #fff;
     border-radius: 8px;
-    min-height: 500px;
+    min-height: 700px;
+}
+:deep(.diff-dialog) {
+    .el-dialog__body {
+        padding: 10px 20px;
+        max-height: 80vh;
+        background: #f5f5f5;
+    }
 }
 
-.content-preview {
-    max-height: 400px;
-    overflow-y: auto;
-    line-height: 1.6;
+.diff-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.diff-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.diff-content {
+    display: flex;
+    gap: 20px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    min-height: 500px;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+.diff-column {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.diff-column-header {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.diff-column-content {
+    flex: 1;
+    padding: 15px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 4px;
     white-space: pre-wrap;
-    word-break: break-word;
-    font-family: sans-serif;
+    word-break: break-all;
+    overflow-y: auto;
+    max-height: 50vh;
+}
+
+.diff-column-content img,
+.diff-column-content video,
+.diff-column-content audio {
+    max-width: 100%;
+    height: auto;
+    margin: 10px 0;
 }
 </style>

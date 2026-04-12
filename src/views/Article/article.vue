@@ -33,10 +33,7 @@
                                 </div>
                             </div>
                             <el-divider />
-                            <el-dropdown-item
-                                command="home"
-                                class="menu-item"
-                            >
+                            <el-dropdown-item command="home" class="menu-item">
                                 <el-icon><House /></el-icon>
                                 <span>首页</span>
                             </el-dropdown-item>
@@ -47,7 +44,7 @@
                                 <el-icon><User /></el-icon>
                                 <span>个人中心</span>
                             </el-dropdown-item>
-                            
+
                             <el-dropdown-item
                                 command="content"
                                 class="menu-item"
@@ -100,7 +97,7 @@
                     查看文章
                 </button>
                 <button class="btn btn-outline" @click="manageArticles">
-                    管理博文
+                    管理文章
                 </button>
                 <button class="btn btn-outline" @click="startNewArticle">
                     再写一篇
@@ -216,7 +213,7 @@
             <button
                 @click="handleSubmit('save')"
                 class="btn btn-secondary"
-                :disabled="submitting"
+                :disabled="submitting || !validateTitle()"
             >
                 {{
                     submitting && submitType === 'save'
@@ -227,7 +224,12 @@
             <button
                 @click="handleSubmit('submit')"
                 class="btn btn-primary"
-                :disabled="submitting"
+                :disabled="
+                    submitting ||
+                    !validateTitle() ||
+                    !validateCategory() ||
+                    !validateContent()
+                "
             >
                 {{
                     submitting && submitType === 'submit'
@@ -246,7 +248,13 @@
                 v-if="showScheduleTime"
                 @click="handleSubmit('schedule')"
                 class="btn btn-success"
-                :disabled="submitting"
+                :disabled="
+                    submitting ||
+                    !validateTitle() ||
+                    !validateCategory() ||
+                    !validateContent() ||
+                    !validateScheduleTime()
+                "
             >
                 {{
                     submitting && submitType === 'schedule'
@@ -268,11 +276,11 @@ import { getCategoryListAPI } from '@/api/category';
 import { uploadFileAPI } from '@/api/uploads';
 import { useUserStore } from '@/stores/userStore';
 import {
-    House,
     ArrowRight,
     CircleCloseFilled,
     Document,
     Edit,
+    House,
     InfoFilled,
     Refresh,
     SuccessFilled,
@@ -295,27 +303,27 @@ const router = useRouter();
 const handleCommand = (command: string) => {
     switch (command) {
         case 'home':
+            document.title = '首页';
             router.push('/');
             break;
         case 'userInfo':
+            document.title = '个人中心';
             router.push('/userInfo');
             break;
         case 'content':
+            document.title = '内容管理';
             router.push('/user/content');
             break;
         case 'draft':
+            document.title = '草稿箱';
             router.push('/user/draft');
             break;
-        case 'favorites':
-            router.push('/user/favorites');
-            break;
-        case 'history':
-            router.push('/user/history');
-            break;
         case 'ArticleVersionHistory':
+            document.title = '版本回溯';
             router.push('/user/ArticleVersionHistory');
             break;
         case 'logout':
+            document.title = '登录';
             userStore.clearUserInfo();
             router.push('/login');
             break;
@@ -421,6 +429,8 @@ const errors = reactive({
     title: '',
     category: '',
     content: '',
+    source: '',
+    editor: '',
     schedule: '',
 });
 
@@ -543,6 +553,20 @@ const validateTitle = () => {
 const validateCategory = () => {
     const valid = !!formData.category_id;
     errors.category = valid ? '' : '请选择分类';
+    return valid;
+};
+
+// 验证来源
+const validateSource = () => {
+    const valid = !!formData.source.trim();
+    errors.source = valid ? '' : '来源不能为空';
+    return valid;
+};
+
+// 验证作者
+const validateEditor = () => {
+    const valid = !!formData.editor.trim();
+    errors.editor = valid ? '' : '作者不能为空';
     return valid;
 };
 
@@ -719,16 +743,19 @@ const viewArticle = () => {
         showMessage('无法查看文章：ID 不存在', 'error');
         return;
     }
+    document.title = '查看文章';
     router.push(`/articleDetail/${currentArticleId.value}`);
 };
 
 // 管理文章
 const manageArticles = () => {
+    document.title = '管理文章';
     router.push('/user/content');
 };
 
 // 开始新文章
 const startNewArticle = () => {
+    document.title = '创建文章';
     resetForm();
     showSuccessPage.value = false;
     currentArticleId.value = null;

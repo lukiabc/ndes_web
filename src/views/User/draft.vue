@@ -36,7 +36,7 @@
 
         <!-- 分页 -->
         <el-pagination
-            v-if="total > pageSize"
+            v-if="!loading && draftList.length > 0"
             class="pagination"
             background
             layout="total, prev, pager, next, jumper"
@@ -49,18 +49,18 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { debounce } from 'lodash-es';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { useUserStore } from '@/stores/userStore';
 import {
-    searchArticlesByUserAPI,
     deleteArticleAPI,
+    searchArticlesByUserAPI,
     type ArticleItem,
 } from '@/api/article';
+import { useUserStore } from '@/stores/userStore';
 import ArticleList from '@/views/User/components/ArticleList.vue';
 
 const userStore = useUserStore();

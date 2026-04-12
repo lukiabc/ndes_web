@@ -19,9 +19,21 @@
                     <el-image
                         :src="scope.row.cover_image"
                         fit="cover"
-                        style="width: 80px; height: 45px; border-radius: 4px"
+                        style="
+                            width: 80px;
+                            height: 45px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                        "
                         :preview-src-list="[scope.row.cover_image]"
-                    />
+                        preview-teleported
+                    >
+                        <template #error>
+                            <div class="image-error">
+                                <el-icon><Picture /></el-icon>
+                            </div>
+                        </template>
+                    </el-image>
                 </template>
             </el-table-column>
 
@@ -129,15 +141,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { highlightText } from '@/utils/highlightText';
 import {
-    getCarouselsAPI,
     deleteCarouselsAPI,
+    getCarouselsAPI,
     type Carousel,
 } from '@/api/carousels';
+import { highlightText } from '@/utils/highlightText';
 import AddToCarouselDialog from '@/views/Admin/components/AddToCarouselDialog.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { onMounted, ref } from 'vue';
 
 const carouselList = ref<Carousel[]>([]);
 const total = ref(0);
