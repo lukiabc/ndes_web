@@ -53,7 +53,7 @@ import { Search } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { debounce } from 'lodash-es';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 import {
     deleteArticleAPI,
@@ -64,6 +64,7 @@ import { useUserStore } from '@/stores/userStore';
 import ArticleList from '@/views/User/components/ArticleList.vue';
 
 const userStore = useUserStore();
+const route = useRoute();
 const userId = computed(() => userStore.userInfo.result.user_id);
 
 const loading = ref(false);
@@ -138,6 +139,14 @@ const deleteArticle = async (id: number) => {
         if (error !== 'cancel') ElMessage.error('删除失败');
     }
 };
+watch(
+    () => route.path,
+    (newPath, oldPath) => {
+        if (newPath === '/user/drafts') {
+            fetchDrafts(currentPage.value);
+        }
+    }
+);
 
 onMounted(() => fetchDrafts(1));
 </script>
