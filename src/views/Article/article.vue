@@ -155,7 +155,11 @@
                             v-model="formData.source"
                             placeholder="请输入文章来源"
                             class="form-input"
+                            @blur="validateSource"
                         />
+                        <span v-if="errors.source" class="error-msg">{{
+                            errors.source
+                        }}</span>
                     </div>
 
                     <div class="form-row">
@@ -164,7 +168,11 @@
                             v-model="formData.editor"
                             placeholder="请输入编辑者"
                             class="form-input"
+                            @blur="validateEditor"
                         />
+                        <span v-if="errors.editor" class="error-msg">{{
+                            errors.editor
+                        }}</span>
                     </div>
 
                     <!-- 富文本编辑器 -->
@@ -228,6 +236,8 @@
                     submitting ||
                     !validateTitle() ||
                     !validateCategory() ||
+                    !validateSource() ||
+                    !validateEditor() ||
                     !validateContent()
                 "
             >
@@ -252,6 +262,8 @@
                     submitting ||
                     !validateTitle() ||
                     !validateCategory() ||
+                    !validateSource() ||
+                    !validateEditor() ||
                     !validateContent() ||
                     !validateScheduleTime()
                 "
@@ -606,6 +618,8 @@ const validateForm = (type) => {
     }
     if (!validateTitle()) isValid = false;
     if (!validateCategory()) isValid = false;
+    if (!validateSource()) isValid = false;
+    if (!validateEditor()) isValid = false;
     if (!validateContent()) isValid = false;
     if (type === 'schedule') {
         if (!validateScheduleTime()) isValid = false;
