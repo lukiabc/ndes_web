@@ -14,6 +14,13 @@
     <el-table :data="sensitiveWordList" style="width: 100%">
         <el-table-column label="ID" prop="id" min-width="100" sortable />
         <el-table-column label="敏感词" prop="word" min-width="180" sortable />
+        <el-table-column label="类型" min-width="120" sortable>
+            <template #default="scope">
+                <el-tag :type="scope.row.type === 'regex' ? 'warning' : 'info'">
+                    {{ scope.row.type === 'regex' ? '正则' : '关键词' }}
+                </el-tag>
+            </template>
+        </el-table-column>
         <el-table-column label="操作" min-width="180">
             <template #default="scope">
                 <el-button
@@ -60,9 +67,15 @@
                 <el-input
                     v-model="form.word"
                     placeholder="请输入敏感词"
-                    maxlength="10"
+                    maxlength="50"
                     show-word-limit
                 />
+            </el-form-item>
+            <el-form-item label="类型" prop="type">
+                <el-radio-group v-model="form.type">
+                    <el-radio label="keyword">关键词</el-radio>
+                    <el-radio label="regex">正则</el-radio>
+                </el-radio-group>
             </el-form-item>
         </el-form>
 
@@ -76,20 +89,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import {
+    createSensitiveWordAPI,
+    deleteSensitiveWordAPI,
+    getSensitiveWordListAPI,
+    searchSensitiveWordsAPI,
+    updateSensitiveWordAPI,
+} from '@/api/sensitiveWord';
 import {
     ElMessage,
     ElMessageBox,
     type FormInstance,
     type FormRules,
 } from 'element-plus';
-import {
-    getSensitiveWordListAPI,
-    searchSensitiveWordsAPI,
-    deleteSensitiveWordAPI,
-    createSensitiveWordAPI,
-    updateSensitiveWordAPI,
-} from '@/api/sensitiveWord';
+import { onMounted, ref } from 'vue';
 
 // 搜索关键词
 const searchKey = ref('');
@@ -111,14 +124,16 @@ const formRef = ref<FormInstance>();
 const form = ref({
     id: 0,
     word: '',
+    type: 'keyword',
 });
 
 // 表单验证规则
 const rules = ref<FormRules>({
     word: [
         { required: true, message: '敏感词不能为空', trigger: 'blur' },
-        { min: 1, max: 50, message: '长度在 1 到 10 个字符', trigger: 'blur' },
+        { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' },
     ],
+    type: [{ required: true, message: '请选择类型', trigger: 'change' }],
 });
 
 // 获取敏感词列表
@@ -189,6 +204,7 @@ const handleDelete = async (row: any) => {
 const handleAdd = () => {
     dialogType.value = 'add';
     form.value.word = '';
+    form.value.type = 'keyword';
     dialogVisible.value = true;
 };
 
@@ -197,6 +213,7 @@ const handleEdit = (row: any) => {
     dialogType.value = 'edit';
     form.value.id = row.id;
     form.value.word = row.word;
+    form.value.type = row.type || 'keyword';
     dialogVisible.value = true;
 };
 
@@ -214,11 +231,12 @@ const submitForm = async () => {
         if (!valid) return;
 
         if (dialogType.value === 'add') {
-            await createSensitiveWordAPI(form.value.word);
+            await createSensitiveWordAPI(form.value.word, form.value.type);
         } else {
             await updateSensitiveWordAPI(
                 form.value.id.toString(),
-                form.value.word
+                form.value.word,
+                form.value.type
             );
         }
 

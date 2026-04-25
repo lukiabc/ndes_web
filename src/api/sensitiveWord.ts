@@ -1,12 +1,16 @@
 import httpInstance from '@/utils/http';
 
 // 创建敏感词
-export const createSensitiveWordAPI = (word: string) => {
+export const createSensitiveWordAPI = (
+    word: string,
+    type: string = 'keyword'
+) => {
     return httpInstance({
         url: '/sensitive/create',
         method: 'POST',
         data: {
             word,
+            type,
         },
     });
 };
@@ -29,12 +33,17 @@ export const getSensitiveWordListAPI = (page = 1, pageSize = 10) => {
 };
 
 // 编辑敏感词
-export const updateSensitiveWordAPI = (id: string, word: string) => {
+export const updateSensitiveWordAPI = (
+    id: string,
+    word: string,
+    type: string = 'keyword'
+) => {
     return httpInstance({
         url: `/sensitive/update/${id}`,
         method: 'PUT',
         data: {
             word,
+            type,
         },
     });
 };
