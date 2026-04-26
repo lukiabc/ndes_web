@@ -354,6 +354,7 @@ const ARTICLE_STATUS = {
     PENDING: '待审',
     REJECTED: '拒绝',
     SCHEDULED: '待发布',
+    DRAFT: '草稿',
 };
 
 /**
@@ -718,6 +719,9 @@ const handleSubmit = async (type) => {
             status === ARTICLE_STATUS.SCHEDULED
         ) {
             messageType = 'success';
+        } else if (status === ARTICLE_STATUS.DRAFT) {
+            // 网络异常导致转入草稿箱
+            messageType = 'warning';
         }
 
         // 设置成功页内容
@@ -725,6 +729,11 @@ const handleSubmit = async (type) => {
             // 错误时仍可选择进结果页
             successTitle.value = displayMessage;
             successIconType.value = 'error';
+            showSuccessPage.value = true;
+        } else if (messageType === 'warning') {
+            // 网络异常导致转入草稿箱
+            successTitle.value = displayMessage;
+            successIconType.value = 'warning';
             showSuccessPage.value = true;
         } else {
             // 成功类操作

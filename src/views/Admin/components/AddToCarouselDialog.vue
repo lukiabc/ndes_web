@@ -103,14 +103,15 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus';
-import type { FormInstance } from 'element-plus';
-import { uploadFileAPI } from '@/api/uploads';
 import {
     createCarouselsAPI,
     updateCarouselsAPI,
     type Carousel,
 } from '@/api/carousels';
+import { uploadFileAPI } from '@/api/uploads';
+import type { FormInstance } from 'element-plus';
+import { ElMessage } from 'element-plus';
+import { watch } from 'vue';
 
 const props = defineProps<{
     articleId?: number; // 新增时需要关联的文章 ID
@@ -174,10 +175,10 @@ const handleFileChange = async (event: Event) => {
 
     try {
         const res = await uploadFileAPI(formData);
-        if (res.data.success && res.data.files?.[0]?.url) {
-            form.cover_image = res.data.files[0].url;
+        if (res.data.errno === 0 && res.data.data?.[0]?.url) {
+            form.cover_image = res.data.data[0].url;
         } else {
-            ElMessage.error('上传失败，请重试');
+            ElMessage.error(res.data.message || '上传失败，请重试');
         }
     } catch (error: any) {
         console.error('上传错误:', error);
@@ -244,6 +245,23 @@ const resetForm = () => {
     form.end_play_date = props.initialData?.end_play_date || '';
     if (formRef.value) formRef.value.clearValidate();
 };
+
+// 监听 props 变化，当 articleTitle 变化时更新表单数据
+watch(
+    () => props.articleTitle,
+    (newTitle) => {
+        if (!props.isEdit) {
+            form.title = newTitle || '';
+        }
+    }
+);
+
+// 监听可见性变化，当弹窗打开时重置表单
+watch(visible, (newVisible) => {
+    if (newVisible) {
+        resetForm();
+    }
+});
 </script>
 
 <style scoped>
